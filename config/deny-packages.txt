@@ -82,7 +82,7 @@ fonts-noto-extra
 *-dbgsym
 *-dbg
 *-doc
-*-dev
+dde-*-dev
 lib*-dev
 golang-*-dev
 qtbase*-dev

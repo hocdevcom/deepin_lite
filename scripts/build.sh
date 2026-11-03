@@ -173,6 +173,8 @@ chroot "$ROOT" dpkg-query -W '-f=${binary:Package}\n' > "$WORK/before-purge.txt"
 python3 scripts/policy.py purge-list --manifest "$WORK/before-purge.txt" > "$WORK/purge.txt"
 mapfile -t purge < <(sed '/^$/d' "$WORK/purge.txt")
 if ((${#purge[@]})); then
+    chroot "$ROOT" apt-get --simulate purge --auto-remove "${purge[@]}" > "$DIST/purge-plan.txt"
+    python3 scripts/policy.py check-purge --manifest "$DIST/purge-plan.txt" --require config/packages.txt
     chroot "$ROOT" apt-get purge -y --auto-remove "${purge[@]}"
 fi
 cp "$WORK/purge.txt" "$DIST/purged-packages.txt"
