@@ -118,7 +118,9 @@ jobs:
         run: python3 scripts/download-packages.py
       - name: Verify reused source contents
         if: inputs.package_run_id != ''
-        run: python3 scripts/verify-source-artifacts.py | tee source-reuse-audit.txt
+        run: |
+          set -o pipefail
+          python3 scripts/verify-source-artifacts.py | tee source-reuse-audit.txt
       - name: Assemble audited packages into live ISO
         run: |
           set -o pipefail
