@@ -1,5 +1,10 @@
 # Deepin Lite
 
+Bản kiểm chứng mới: [ISO artifact 35](https://github.com/hocdevcom/deepin_lite/actions/runs/41620241204/artifacts/13224933572).
+Đã kiểm tra canvas, hình nền, mở Terminal/File Manager và không phát hiện crash
+trong bài thử BIOS/UEFI QEMU. ISO và source/DEB nằm ở hai artifact riêng.
+Bản 29 cũ thiếu Qt Wayland runtime cho tray và hình nền mặc định; dùng bản 35.
+
 Bản dựng thử nghiệm Deepin amd64 tối giản, với GitHub Actions tạo Live ISO.
 Giữ desktop Deepin (DDE), file manager, terminal, mạng và âm thanh. Không dùng
 metapackage `dde` / `deepin-desktop-environment` vì chúng kéo theo nhiều ứng dụng.
@@ -166,7 +171,14 @@ Nguồn tham khảo: [Deepin GitHub](https://github.com/linuxdeepin),
 
 Bản File Manager đã khóa cung cấp desktop qua plugin dde-shell, không có binary
 `dde-desktop`. Session bỏ unit khởi chạy binary cũ; smoke test xác nhận D-Bus
-`com.deepin.dde.desktop` và giữ desktop ổn định 30 giây cho mỗi firmware.
+`com.deepin.dde.desktop` và giữ desktop ổn định 120 giây cho mỗi firmware.
 
 Theme Bloom cũng được build lại từ nguồn đã khóa; xóa file icon AI trước khi
 đóng gói, giữ copyright và chỉ cài gói Bloom, bỏ các theme phụ.
+
+Runtime có `qtwayland5` vì tray Qt5 dùng compositor Wayland nhúng của dde-shell
+ngay trong phiên X11. Giữ duy nhất ảnh mặc định từ deepin-wallpapers (khoảng
+2,1 MB), không cài bộ sưu tập hình nền còn lại. Smoke test kiểm tra canvas
+D-Bus, quét crash trong journal, yêu cầu cửa sổ Terminal/File Manager thực sự
+hiện và tiếp tục hoạt động, rồi thu nhỏ chúng để chụp desktop. Kiểm chứng này
+chạy trên QEMU; VirtualBox cần thử lại bằng ISO mới, không khôi phục saved state cũ.

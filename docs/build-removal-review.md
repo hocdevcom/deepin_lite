@@ -82,3 +82,16 @@ phải thuộc job đã đạt và source archive phải khớp source chuẩn b
   màn hình có thanh dock DDE trên nền đen. Chưa kiểm tra tương tác tất cả ứng dụng.
 - Không có annotation Node.js 20 trên job ISO hiện hành.
 - Live ISO chưa có installer, Secure Boot chưa hỗ trợ.
+
+## Bản sửa runtime sau phản hồi máy ảo — artifact 35
+
+Bản 29 trước đó chỉ kiểm tra shell/desktop D-Bus và đã bỏ sót tray crash, khả
+năng mở ứng dụng và hình nền. Không dùng kết quả đó để khẳng định giao diện
+đã được kiểm thử đầy đủ.
+
+[Run 41620241204](https://github.com/hocdevcom/deepin_lite/actions/runs/41620241204)
+đã đạt: 1.026 gói qua 103 quy tắc, rootfs audit PASS, canvas hoạt động, desktop
+ổn định 120 giây, Terminal/File Manager có cửa sổ và tiếp tục chạy, không có
+crash được bộ nhận diện journal phát hiện, boot cả BIOS/UEFI. Ảnh chụp đã được
+xem và xác nhận hình nền hiện bình thường. Bổ sung qtwayland5 cho tray nội bộ
+và ảnh mặc định 2,1 MB do gói deepin-wallpapers quản lý qua alternatives.
