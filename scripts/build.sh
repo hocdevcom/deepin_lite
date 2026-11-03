@@ -199,7 +199,7 @@ find "$ROOT/usr/share/applications" -name '*.desktop' -printf '%f\n' | sort > "$
 kernel=$(find "$ROOT/boot" -maxdepth 1 -type f -name 'vmlinuz-*' | sort -V | tail -n1)
 [[ -n $kernel ]] || { echo 'No kernel installed.' >&2; exit 1; }
 version=${kernel##*/vmlinuz-}
-[[ -s "$ROOT/boot/initrd.img-$version" ]]
+[[ -s "$ROOT/boot/initrd.img-$version" ]] || { echo "Missing live initrd for $version" >&2; exit 1; }
 cp "$kernel" "$ISO/live/vmlinuz"
 cp "$ROOT/boot/initrd.img-$version" "$ISO/live/initrd.img"
 cp config/grub.cfg "$ISO/boot/grub/grub.cfg"

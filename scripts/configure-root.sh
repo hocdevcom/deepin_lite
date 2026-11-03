@@ -41,4 +41,19 @@ rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/* /tmp/* /var/tmp/*
 find /var/log -type f -exec truncate -s 0 {} +
 rm -f /etc/machine-id /var/lib/dbus/machine-id /etc/ssh/ssh_host_*
 touch /etc/machine-id
-update-initramfs -u -k all
+# Deepin's kernel package can leave the first initrd uncreated in a chroot.
+# Update mode alone silently skips kernels without a registered initrd.
+found_kernel=false
+for kernel in /boot/vmlinuz-*; do
+    [[ -f $kernel ]] || continue
+    found_kernel=true
+    version=${kernel#/boot/vmlinuz-}
+    mode=-c
+    if [[ -s /boot/initrd.img-$version ]]; then mode=-u; fi
+    update-initramfs "$mode" -k "$version"
+    [[ -s /boot/initrd.img-$version ]]
+    lsinitramfs "/boot/initrd.img-$version" > /tmp/initrd-contents.txt
+    grep -q '^scripts/live$' /tmp/initrd-contents.txt
+done
+[[ $found_kernel == true ]] || { echo 'No installed kernel to prepare.' >&2; exit 1; }
+rm -f /tmp/initrd-contents.txt
