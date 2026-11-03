@@ -148,7 +148,7 @@ hệ thống đã cài hoặc để chứa dữ liệu nhạy cảm trước khi
 ISO có GRUB BIOS/UEFI; Secure Boot chưa được hỗ trợ. CI kiểm tra boot metadata,
 khởi động chính ISO qua cả BIOS và OVMF UEFI bằng QEMU TCG, đi qua GRUB và
 live initramfs, rồi đợi NetworkManager, LightDM, `dde-shell`/`dshell` cùng
-`dde-desktop` hoạt động. CI chưa kiểm tra thao tác giao diện, mạng ra ngoài
+desktop plugin `org.deepin.ds.desktop` hoạt động. CI chưa kiểm tra thao tác giao diện, mạng ra ngoài
 hoặc cài đặt vào đĩa.
 Máy Windows soạn dự án này chưa có Linux runtime nên chưa build/chạy ISO tại chỗ;
 chỉ được coi là build thành công sau khi workflow thực tế xanh.
@@ -161,3 +161,7 @@ và prepare-sources.py.
 Nguồn tham khảo: [Deepin GitHub](https://github.com/linuxdeepin),
 [kho gói](https://www.deepin.org/en/mirrors/packages/),
 [keyring upstream](https://github.com/linuxdeepin/deepin-keyring).
+
+Bản File Manager đã khóa cung cấp desktop qua plugin dde-shell, không có binary
+`dde-desktop`. Session bỏ unit khởi chạy binary cũ; smoke test xác nhận D-Bus
+`com.deepin.dde.desktop` và giữ desktop ổn định 30 giây cho mỗi firmware.
