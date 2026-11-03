@@ -1,11 +1,17 @@
 #!/usr/bin/env bash
 set -eu
+stable=0
 for ((i=0; i<210; i++)); do
     if id live >/dev/null 2>&1 && systemctl is-active --quiet NetworkManager lightdm &&
         { pgrep -u live -x dde-shell >/dev/null || pgrep -u live -x dshell >/dev/null; } &&
         pgrep -u live -x dde-desktop >/dev/null; then
-        echo DEEPIN_LITE_DESKTOP_READY
-        exit 0
+        ((stable+=1))
+        if ((stable >= 15)); then
+            echo DEEPIN_LITE_DESKTOP_READY
+            exit 0
+        fi
+    else
+        stable=0
     fi
     sleep 2
 done
