@@ -28,8 +28,13 @@ jobs:
           python3 -m compileall -q scripts
           for script in scripts/*.sh; do bash -n "$script"; done
           sudo apt-get update
-          sudo apt-get install -y shellcheck
+          sudo apt-get install -y shellcheck xvfb xauth x11-xserver-utils dbus
           shellcheck scripts/*.sh
+      - name: Check virtual display primary output
+        run: |
+          dbus-run-session -- xvfb-run --auto-servernum \
+            --server-args="-screen 0 1280x720x24 -nolisten tcp -noreset" \
+            bash scripts/build-session.sh /bin/true
       - name: Verify source removal against locked upstream revisions
         run: |
           python3 scripts/prepare-sources.py "$RUNNER_TEMP/deepin-lite-sources"

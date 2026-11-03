@@ -19,6 +19,8 @@ metapackage `dde` / `deepin-desktop-environment` vì chúng kéo theo nhiều �
 - Test khi build gói có session D-Bus riêng và màn hình Xvfb; `dbus-x11`, Xvfb,
   xauth chỉ cài trong builder. Không dùng `nocheck` để bỏ qua test thất bại.
   Log từng gói nằm trong `source-build-<tên-gói>.log` ở artifact reports.
+- `build-session.sh` đặt primary output trên Xvfb trước khi test RandR;
+  builder có `bc` phục vụ bộ test tạo theme GRUB.
 - Builder cài `deepin-desktop-base` để test đọc được `/etc/os-version`, cùng
   `grub-common`, `librsvg2-bin` và Unifont cho test theme. ISO cài DEB desktop-base
   đã build lại, bỏ phụ thuộc font thừa và App Store config; giữ postinst và

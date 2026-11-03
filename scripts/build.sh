@@ -82,7 +82,8 @@ python3 scripts/prepare-sources.py "$BUILDER/build"
 chroot "$BUILDER" apt-get update
 chroot "$BUILDER" apt-get install -y --no-install-recommends \
     build-essential devscripts equivs fakeroot ca-certificates dbus-x11 xvfb xauth locales \
-    deepin-desktop-base grub-common librsvg2-bin fonts-unifont
+    deepin-desktop-base grub-common librsvg2-bin fonts-unifont bc x11-xserver-utils
+install -Dm755 scripts/build-session.sh "$BUILDER/usr/local/lib/deepin-lite/build-session.sh"
 # Upstream desktop-base supplies /etc/os-version for tests. The runtime gets
 # these files from our rebuilt desktop-base DEB through dpkg, not manual copies.
 # Desktop tests need a private session bus and virtual X display. These test
@@ -101,7 +102,8 @@ for project in deepin-desktop-base dde-api dde-daemon dde-session dde-file-manag
         install -d -m 700 -o builder -g builder /run/deepin-lite-build
         runuser --user builder -- env HOME=/home/builder XDG_RUNTIME_DIR=/run/deepin-lite-build \
             dbus-run-session -- xvfb-run --auto-servernum \
-            --server-args="-screen 0 1280x720x24 -nolisten tcp" \
+            --server-args="-screen 0 1280x720x24 -nolisten tcp -noreset" \
+            /usr/local/lib/deepin-lite/build-session.sh \
             dpkg-buildpackage -rfakeroot --build=full --no-sign -j2
     ' -- "$project" 2>&1 | tee "$DIST/source-build-$project.log"
 done
