@@ -21,6 +21,7 @@ xserver-xorg-input-libinput
 xserver-xorg-video-all
 xinit
 x11-xserver-utils
+xdotool
 lightdm
 lightdm-gtk-greeter
 dde-session

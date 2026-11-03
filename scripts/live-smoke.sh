@@ -13,6 +13,30 @@ desktop_ready() {
         busctl --user --no-pager introspect com.deepin.dde.desktop \
         /com/deepin/dde/desktop com.deepin.dde.desktop >/dev/null 2>&1
 }
+check_applications() {
+    local uid
+    uid=$(id -u live)
+    local -a session=(runuser -u live -- env "XDG_RUNTIME_DIR=/run/user/$uid"
+        "DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/$uid/bus")
+    # The user manager holds DISPLAY/XAUTHORITY imported by dde-session.
+    "${session[@]}" systemd-run --user --unit=deepin-lite-terminal /usr/bin/deepin-terminal
+    "${session[@]}" systemd-run --user --unit=deepin-lite-file-manager /usr/bin/dde-file-manager /home/live
+    "${session[@]}" systemd-run --user --wait --pipe --unit=deepin-lite-window-check \
+        /bin/bash -c '
+            for ((i=0; i<45; i++)); do
+                if xdotool search --onlyvisible --class deepin-terminal >/dev/null 2>&1 &&
+                    xdotool search --onlyvisible --class dde-file-manager >/dev/null 2>&1; then
+                    sleep 20
+                    xdotool search --onlyvisible --class deepin-terminal &&
+                        xdotool search --onlyvisible --class dde-file-manager
+                    exit $?
+                fi
+                sleep 2
+            done
+            echo "Terminal or File Manager failed to present a visible window." >&2
+            exit 1
+        '
+}
 for ((i=0; i<210; i++)); do
     if has_crashes; then
         failed=true
@@ -23,6 +47,10 @@ for ((i=0; i<210; i++)); do
         desktop_ready; then
         ((stable+=1))
         if ((stable >= 60)); then
+            if ! check_applications || has_crashes; then
+                failed=true
+                break
+            fi
             journalctl --no-pager -b -n 200
             echo DEEPIN_LITE_DESKTOP_READY
             exit 0
