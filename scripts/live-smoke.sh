@@ -18,29 +18,8 @@ check_applications() {
     uid=$(id -u live)
     local -a session=(runuser -u live -- env "XDG_RUNTIME_DIR=/run/user/$uid"
         "DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/$uid/bus")
-    # The user manager holds DISPLAY/XAUTHORITY imported by dde-session.
-    "${session[@]}" systemd-run --user --unit=deepin-lite-terminal /usr/bin/deepin-terminal
-    "${session[@]}" systemd-run --user --unit=deepin-lite-file-manager /usr/bin/dde-file-manager /home/live
-    # shellcheck disable=SC2016 # Expanded by the live user's child shell.
-    "${session[@]}" systemd-run --user --wait --pipe --unit=deepin-lite-window-check \
-        /bin/bash -c '
-            for ((i=0; i<45; i++)); do
-                if xdotool search --onlyvisible --class deepin-terminal >/dev/null 2>&1 &&
-                    xdotool search --onlyvisible --class dde-file-manager >/dev/null 2>&1; then
-                    sleep 20
-                    xdotool search --onlyvisible --class deepin-terminal || exit 1
-                    xdotool search --onlyvisible --class dde-file-manager || exit 1
-                    for window in $(xdotool search --onlyvisible --class "deepin-terminal|dde-file-manager"); do
-                        xdotool windowminimize "$window"
-                    done
-                    sleep 5
-                    exit 0
-                fi
-                sleep 2
-            done
-            echo "Terminal or File Manager failed to present a visible window." >&2
-            exit 1
-        '
+    "${session[@]}" systemd-run --user --wait --pipe --collect --unit=deepin-lite-lifecycle-check \
+        /usr/bin/timeout 600 /usr/local/lib/deepin-lite/test-app-lifecycle.sh
 }
 for ((i=0; i<210; i++)); do
     if has_crashes; then
@@ -49,6 +28,7 @@ for ((i=0; i<210; i++)); do
     fi
     if id live >/dev/null 2>&1 && systemctl is-active --quiet NetworkManager lightdm &&
         { pgrep -u live -x dde-shell >/dev/null || pgrep -u live -x dshell >/dev/null; } &&
+        busctl --system --timeout=3 status org.desktopspec.ConfigManager >/dev/null 2>&1 &&
         desktop_ready; then
         ((stable+=1))
         if ((stable >= 60)); then
@@ -69,7 +49,7 @@ if [[ $failed == true ]]; then echo 'Runtime crash detected during live desktop 
 systemctl --no-pager status lightdm NetworkManager || true
 journalctl --no-pager -b -p warning -n 100 || true
 if id live >/dev/null 2>&1; then
-    journalctl --no-pager -b _UID="$(id -u live)" -n 150 || true
+    journalctl --no-pager -b _UID="$(id -u live)" || true
 fi
 ps aux
 echo DEEPIN_LITE_DESKTOP_FAILED

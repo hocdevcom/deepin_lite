@@ -27,13 +27,13 @@ for firmware in bios uefi; do
     fi
     log="dist/qemu-$firmware.log"
     socket="$BASE/.work/qmp-$firmware.sock"
-    timeout 600 qemu-system-x86_64 -accel tcg -m 4096 -smp 2 -vga std \
+    timeout 1200 qemu-system-x86_64 -accel tcg -m 4096 -smp 2 -vga std \
         "${args[@]}" -cdrom dist/deepin-lite-amd64.iso -boot d \
         -display none -serial stdio -monitor none -no-reboot \
         -qmp "unix:$socket,server=on,wait=off" > "$log" 2>&1 &
     vm=$!
     ready=false
-    for ((i=0; i<290; i++)); do
+    for ((i=0; i<590; i++)); do
         if grep -q DEEPIN_LITE_DESKTOP_READY "$log"; then ready=true; break; fi
         if grep -q DEEPIN_LITE_DESKTOP_FAILED "$log" || ! kill -0 "$vm" 2>/dev/null; then break; fi
         sleep 2

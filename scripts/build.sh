@@ -183,6 +183,7 @@ chroot "$ROOT" dpkg --audit
 python3 scripts/check-runtime-links.py "$ROOT" "$DIST/runtime-link-audit.txt"
 install -m755 scripts/configure-root.sh "$ROOT/tmp/configure-root.sh"
 install -Dm755 scripts/live-smoke.sh "$ROOT/usr/local/lib/deepin-lite/live-smoke.sh"
+install -Dm755 scripts/test-app-lifecycle.sh "$ROOT/usr/local/lib/deepin-lite/test-app-lifecycle.sh"
 install -Dm644 config/deepin-lite-smoke.service "$ROOT/etc/systemd/system/deepin-lite-smoke.service"
 mkdir -p "$ROOT/etc/systemd/system/multi-user.target.wants"
 ln -s ../deepin-lite-smoke.service "$ROOT/etc/systemd/system/multi-user.target.wants/"

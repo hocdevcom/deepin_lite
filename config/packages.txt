@@ -22,11 +22,13 @@ xserver-xorg-video-all
 xinit
 x11-xserver-utils
 xdotool
+wmctrl
 lightdm
 lightdm-gtk-greeter
 dde-session
 startdde
 dde-daemon
+dde-dconfig-daemon
 dde-api-proxy
 dde-application-manager
 dde-shell

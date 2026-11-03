@@ -6,7 +6,7 @@ After=display-manager.service NetworkManager.service
 [Service]
 Type=oneshot
 ExecStart=/usr/local/lib/deepin-lite/live-smoke.sh
-TimeoutStartSec=480
+TimeoutStartSec=900
 StandardOutput=tty
 StandardError=tty
 TTYPath=/dev/ttyS0
