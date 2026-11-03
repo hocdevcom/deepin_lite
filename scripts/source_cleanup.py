@@ -50,7 +50,20 @@ def clean_daemon(root):
 		return dbusutil.ToError(fmt.Errorf("empty password is unsupported"))
 	}
 ''')
+    # The upstream cloud file also contains a LOCAL keyring helper. Preserve
+    # that helper, while deleting the online dialog/process implementation.
+    cloud_file = root / "accounts1/user_chpwd_union_id.go"
+    cloud_text = cloud_file.read_text()
+    local_helper = cloud_text.split("func removeLoginKeyring", 1)[1]
+    write(root / "accounts1/local_keyring.go",
+          cloud_text.split("package accounts", 1)[0] + 'package accounts\nimport "os"\n'
+          + "func removeLoginKeyring" + local_helper)
     remove(root, "accounts1/user_chpwd_union_id.go")
+    manager = root / "accounts1/manager.go"
+    text, count = re.subn(r'(?ms)^\t_, _ = m.login1Manager.ConnectPrepareForSleep\(func\(before bool\) \{.*?^\t}\)\n', '', manager.read_text())
+    if count != 1:
+        raise RuntimeError("Expected online password-dialog suspend handler")
+    write(manager, text)
     remove(root, "bin/dde-system-daemon/network.go")
     remove(root, "bin/dde-system-daemon/network_test.go")
     path = root / "bin/dde-system-daemon/exported_methods_auto.go"
@@ -130,6 +143,19 @@ def clean_file_manager(root):
     # Upstream forces -j8 even when dpkg-buildpackage requests -j2. Keep the
     # memory limit predictable on standard hosted runners for Qt/C++ builds.
     replace(root / "debian/rules", "\tdh_auto_build -- -j8", "\tdh_auto_build -- -j2")
+    # The old dde-dock SDK is absent from the chosen archive. This image uses
+    # dde-shell; retain its plugin and remove the legacy dock component/package.
+    replace(root / "debian/control", " dde-dock-dev (>=4.8.4.1),\n", "")
+    control = root / "debian/control"
+    text, count = re.subn(r'(?ms)^Package: dde-disk-mount-plugin\n.*?(?=^Package:)', '', control.read_text())
+    if count != 1:
+        raise RuntimeError("Expected legacy dock plugin package")
+    write(control, text)
+    for relative in ("src/external/CMakeLists.txt", "tests/external/CMakeLists.txt"):
+        replace(root / relative, "add_subdirectory(dde-dock-plugins)\n", "")
+    remove(root, "debian/dde-disk-mount-plugin.install")
+    remove(root, "src/external/dde-dock-plugins")
+    remove(root, "tests/external/dde-dock-plugins")
     path = root / "src/dfm-base/utils/sysinfoutils.cpp"
     text = path.read_text()
     start = text.index("bool SysInfoUtils::isDeveloperModeEnabled()")
@@ -158,9 +184,28 @@ def clean_api(root):
     replace(root / "Makefile", "prepare:\n", ".PHONY: prepare\nprepare:\n")
 
 
+def clean_session_shell(root):
+    for stem, class_name in (("auth_password", "AuthPassword"), ("auth_single", "AuthSingle")):
+        path = root / f"src/session-widgets/{stem}.cpp"
+        text, count = re.subn(r'(?ms)^bool ' + class_name + r'::isUserAccountBinded\(\)\n\{.*?^}\n', '', path.read_text())
+        if count != 1:
+            raise RuntimeError("Expected online account lookup: " + stem)
+        write(path, text)
+        replace(root / f"src/session-widgets/{stem}.h", "    bool isUserAccountBinded();\n", "")
+
+
+def clean_session_ui(root):
+    replace(root / "CMakeLists.txt", 'add_subdirectory("reset-password-dialog")\n', "")
+    replace(root / "CMakeLists.txt", "pkg_check_modules(DdeDockInterface REQUIRED dde-dock)\n", "")
+    replace(root / "debian/control", " dde-dock-dev,\n", "")
+    remove(root, "reset-password-dialog")
+    write(root / "debian/postinst", "#!/bin/sh\nset -e\n#DEBHELPER#\nexit 0\n")
+
+
 def clean_source(name, root):
     handlers = {"deepin-desktop-base": clean_desktop_base, "dde-api": clean_api,
                 "dde-daemon": clean_daemon, "dde-control-center": clean_control_center,
-                "dde-file-manager": clean_file_manager}
+                "dde-file-manager": clean_file_manager,
+                "dde-session-shell": clean_session_shell, "dde-session-ui": clean_session_ui}
     if name in handlers:
         handlers[name](Path(root))

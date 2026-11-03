@@ -58,6 +58,30 @@
       "tag": "6.0.78.1",
       "url": "https://codeload.github.com/linuxdeepin/dde-control-center/tar.gz/e1510629ac4794508ce5e4a6a319c561cb9ed521",
       "sha256": "656d2d812b8d298dc64fe8793d0987382b24bc503253b3f6ce88f9b768a3c189"
+    },
+    {
+      "repository": "https://github.com/linuxdeepin/dde-session-shell",
+      "source_kind": "official-debian-native",
+      "version": "6.0.23",
+      "url": "https://community-packages.deepin.com/beige/pool/main/d/dde-session-shell/dde-session-shell_6.0.23.tar.xz",
+      "sha256": "55623b72d55ebb7a094f1d1c84afa20567191b85683b1e9896f5c23a07344160",
+      "authenticated_source_index": {
+        "url": "https://community-packages.deepin.com/beige/dists/beige/main/source/Sources.gz",
+        "sha256": "9fb54648a1d189586dec5557f60cc69a022ca9ed3b0d5e4be98cc2cde089e34f",
+        "inrelease_sha256": "e8b362eca8946dd23427ab65e6e7bfb5066b8e0c348948178b55c8dcf053d5cf"
+      }
+    },
+    {
+      "repository": "https://github.com/linuxdeepin/dde-session-ui",
+      "source_kind": "official-debian-native",
+      "version": "6.0.22",
+      "url": "https://community-packages.deepin.com/beige/pool/main/d/dde-session-ui/dde-session-ui_6.0.22.tar.xz",
+      "sha256": "2dbc7c5a6e501350edac53fdfb3c697fda9382dd98067ec2c78d0c50153d4e0d",
+      "authenticated_source_index": {
+        "url": "https://community-packages.deepin.com/beige/dists/beige/main/source/Sources.gz",
+        "sha256": "9fb54648a1d189586dec5557f60cc69a022ca9ed3b0d5e4be98cc2cde089e34f",
+        "inrelease_sha256": "e8b362eca8946dd23427ab65e6e7bfb5066b8e0c348948178b55c8dcf053d5cf"
+      }
     }
   ],
   "local_revision": "lite3"

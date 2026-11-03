@@ -55,4 +55,4 @@ for source in lock["sources"]:
              "  * Downstream minimal build; remove documented optional online integrations.\n\n"
              f" -- Deepin Lite Builder <builder@localhost>  {date}\n\n")
     changelog.write_text(entry + text, encoding="utf-8", newline="\n")
-    print(f"Prepared {name} @ {source['commit']}")
+    print(f"Prepared {name} @ {source.get('commit', source.get('version'))}")

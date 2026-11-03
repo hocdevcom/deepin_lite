@@ -11,7 +11,11 @@ metapackage `dde` / `deepin-desktop-environment` vì chúng kéo theo nhiều �
 - Biên dịch **deepin-desktop-base**, **dde-api**, **dde-session**, **dde-daemon**, **dde-file-manager** và
   **dde-control-center** từ
   [linuxdeepin](https://github.com/linuxdeepin), khóa commit và SHA256 trong
-  `config/upstream.lock.json`. Đây **không phải** bản biên dịch toàn bộ Deepin từ nguồn.
+  `config/upstream.lock.json`. Thêm **dde-session-shell** và **dde-session-ui**
+  từ source package native chính thức của cùng kho beige vì bản GitHub không
+  tương ứng bản nhị phân đang dùng. Checksum hai source này đã đối chiếu với
+  Sources.gz được xác thực qua chữ ký InRelease; provenance ghi trong lock.
+  Đây **không phải** bản biên dịch toàn bộ Deepin từ nguồn.
 - Sửa packaging của dde-api để bỏ phụ thuộc bắt buộc vào font CJK/Unifont.
   Không giả lập gói phụ thuộc, không dùng `--force-depends`.
 - Build dependency nằm trong chroot riêng; build chạy dưới user thường với
@@ -49,7 +53,9 @@ Các tích hợp nhúng được xóa tại nguồn trong `scripts/source_cleanu
 - **Control Center:** xóa UI cũ chứa UnionID/reset mật khẩu trực tuyến;
   xóa plugin Accounts/cloud sync, Deepin ID, Common Info, System Info và Update.
   Quản lý user Linux cục bộ vẫn còn qua CLI; các trang GUI nói trên không còn.
-- **File Manager:** xóa mã gọi cloud helper để hỏi vendor developer mode.
+- **Lock/session UI:** xóa hàm tra cứu tài khoản cloud trong lock/greeter và
+  loại toàn bộ reset-password-dialog trực tuyến khỏi nguồn/đóng gói.
+- **File Manager:** xóa plugin cho dde-dock cũ, giữ plugin dde-shell; xóa mã gọi cloud helper để hỏi vendor developer mode.
   Chế độ vendor này không được cung cấp; quản lý tệp cục bộ vẫn được giữ.
 
 `scripts/verify-debs.py` kiểm tra payload và maintainer script của từng DEB.
@@ -85,8 +91,8 @@ Không cam kết số GB hoặc “nhỏ nhất tuyệt đối” trước khi b
    `size-report.txt`, nguồn đã khóa, InRelease và log QEMU/build.
 
 PR kiểm tra cấu hình/scripts và áp dụng các sửa đổi lên nguồn đã khóa.
-Build gói chạy theo matrix 6 job độc lập, `fail-fast: false`: một gói lỗi không
-che lỗi của những gói phía sau. Job ISO chỉ bắt đầu khi cả 6 gói build/audit đạt.
+Build gói chạy theo matrix 8 job độc lập, `fail-fast: false`: một gói lỗi không
+che lỗi của những gói phía sau. Job ISO chỉ bắt đầu khi cả 8 gói build/audit đạt.
 Lệnh Linux tương ứng: `sudo bash scripts/build.sh source <tên-gói>` hoặc
 `sudo bash scripts/build.sh image` (với artifact đã tải vào `incoming/`).
 Workflow không cần PAT hay secrets.

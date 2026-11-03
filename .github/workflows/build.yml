@@ -47,7 +47,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        project: [deepin-desktop-base, dde-api, dde-daemon, dde-session, dde-file-manager, dde-control-center]
+        project: [deepin-desktop-base, dde-api, dde-daemon, dde-session, dde-file-manager, dde-control-center, dde-session-shell, dde-session-ui]
     steps:
       - uses: actions/checkout@v4
       - name: Install source builder tools
