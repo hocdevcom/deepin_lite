@@ -1,6 +1,6 @@
 [Unit]
 Description=Deepin Lite CI live desktop check
-ConditionKernelCommandLine=deepin-lite.smoke=1
+ConditionVirtualization=qemu
 After=display-manager.service NetworkManager.service
 
 [Service]

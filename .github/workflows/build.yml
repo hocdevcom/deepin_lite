@@ -1,15 +1,25 @@
 name: Deepin Lite ISO
 on:
   workflow_dispatch:
+    inputs:
+      projects:
+        description: 'Optional JSON source subset for diagnostics; blank builds full ISO'
+        required: false
+        type: string
+      package_run_id:
+        description: 'Optional: reuse 8 successful package jobs for ISO-only retry'
+        required: false
+        type: string
   push:
     branches: [main]
   pull_request:
 
 permissions:
   contents: read
+  actions: read
 
 concurrency:
-  group: deepin-lite-${{ github.ref }}
+  group: deepin-lite-${{ github.ref }}-${{ inputs.projects || 'full' }}
   cancel-in-progress: true
 
 jobs:
@@ -40,14 +50,14 @@ jobs:
           python3 scripts/prepare-sources.py "$RUNNER_TEMP/deepin-lite-sources"
           find "$RUNNER_TEMP/deepin-lite-sources/dde-daemon" -name '*.go' -print0 | xargs -0 gofmt -l
   packages:
-    if: github.event_name != 'pull_request'
+    if: github.event_name != 'pull_request' && inputs.package_run_id == ''
     needs: validate
     runs-on: ubuntu-24.04
     timeout-minutes: 180
     strategy:
       fail-fast: false
       matrix:
-        project: [deepin-desktop-base, dde-api, dde-daemon, dde-session, dde-file-manager, dde-control-center, dde-session-shell, dde-session-ui]
+        project: ${{ fromJSON(inputs.projects || '["deepin-desktop-base", "dde-api", "dde-daemon", "dde-session", "dde-file-manager", "dde-control-center", "dde-session-shell", "dde-session-ui"]') }}
     steps:
       - uses: actions/checkout@v4
       - name: Install source builder tools
@@ -82,8 +92,8 @@ jobs:
             dist/upstream.InRelease
           retention-days: 14
   build:
-    if: github.event_name != 'pull_request'
-    needs: packages
+    if: always() && github.event_name != 'pull_request' && inputs.projects == '' && needs.validate.result == 'success' && (needs.packages.result == 'success' || inputs.package_run_id != '')
+    needs: [validate, packages]
     runs-on: ubuntu-24.04
     timeout-minutes: 120
     steps:
@@ -93,13 +103,21 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends debootstrap gnupg curl ca-certificates \
             squashfs-tools xorriso grub-pc-bin grub-efi-amd64-bin grub-common mtools \
-            python3 qemu-system-x86
+            python3 qemu-system-x86 ovmf
           df -h .
+      - name: Verify reused package provenance
+        if: inputs.package_run_id != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PACKAGE_RUN_ID: ${{ inputs.package_run_id }}
+        run: python3 scripts/verify-reuse.py
       - uses: actions/download-artifact@v4
         with:
           pattern: deepin-package-*
           path: incoming
           merge-multiple: true
+          run-id: ${{ inputs.package_run_id || github.run_id }}
+          github-token: ${{ github.token }}
       - name: Assemble audited packages into live ISO
         run: |
           set -o pipefail

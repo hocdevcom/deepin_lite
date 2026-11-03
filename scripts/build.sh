@@ -112,9 +112,7 @@ if [[ $MODE == source ]]; then projects=("$PROJECT"); fi
 for project in "${projects[@]}"; do
     # shellcheck disable=SC2016 # Expanded by the shell inside the builder.
     chroot "$BUILDER" /bin/bash -euc '
-        mkdir -p "/build/deps-$1"
-        cd "/build/deps-$1"
-        mk-build-deps --install --remove --tool "apt-get -y --no-install-recommends" "/build/$1/debian/control"
+        apt-get -y --no-install-recommends build-dep "/build/$1"
         cd "/build/$1"
         chown -R builder:builder "/build/$1"
         install -d -m 700 -o builder -g builder /run/deepin-lite-build
