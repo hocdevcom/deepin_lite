@@ -39,11 +39,53 @@ jobs:
         run: |
           python3 scripts/prepare-sources.py "$RUNNER_TEMP/deepin-lite-sources"
           find "$RUNNER_TEMP/deepin-lite-sources/dde-daemon" -name '*.go' -print0 | xargs -0 gofmt -l
-  build:
+  packages:
     if: github.event_name != 'pull_request'
     needs: validate
     runs-on: ubuntu-24.04
-    timeout-minutes: 300
+    timeout-minutes: 180
+    strategy:
+      fail-fast: false
+      matrix:
+        project: [deepin-desktop-base, dde-api, dde-daemon, dde-session, dde-file-manager, dde-control-center]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install source builder tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends debootstrap gnupg curl ca-certificates \
+            squashfs-tools xorriso grub-pc-bin grub-efi-amd64-bin grub-common mtools python3
+      - name: Build and test source package
+        env:
+          PROJECT: ${{ matrix.project }}
+        run: |
+          set -o pipefail
+          sudo bash scripts/build.sh source "$PROJECT" 2>&1 | tee build.log
+      - name: Upload audited source packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: deepin-package-${{ matrix.project }}
+          path: |
+            dist/source-debs/
+            dist/sources/
+          retention-days: 7
+          if-no-files-found: error
+      - name: Upload package logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: deepin-source-report-${{ matrix.project }}-${{ github.run_number }}
+          path: |
+            build.log
+            dist/*.log
+            dist/*.txt
+            dist/upstream.InRelease
+          retention-days: 14
+  build:
+    if: github.event_name != 'pull_request'
+    needs: packages
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
     steps:
       - uses: actions/checkout@v4
       - name: Install build tools
@@ -53,10 +95,15 @@ jobs:
             squashfs-tools xorriso grub-pc-bin grub-efi-amd64-bin grub-common mtools \
             python3 qemu-system-x86
           df -h .
-      - name: Build source packages and live ISO
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: deepin-package-*
+          path: incoming
+          merge-multiple: true
+      - name: Assemble audited packages into live ISO
         run: |
           set -o pipefail
-          sudo bash scripts/build.sh 2>&1 | tee build.log
+          sudo bash scripts/build.sh image 2>&1 | tee build.log
       - name: Boot and verify live desktop
         run: sudo bash scripts/smoke.sh
       - name: Show source test failures

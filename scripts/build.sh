@@ -4,6 +4,21 @@ export LC_ALL=C.UTF-8
 export DEBIAN_FRONTEND=noninteractive
 BASE=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)
 cd "$BASE"
+MODE=${1:-all}
+PROJECT=${2:-}
+case "$MODE" in
+    all|image) ;;
+    source)
+        case "$PROJECT" in
+            deepin-desktop-base|dde-api|dde-daemon|dde-session|dde-file-manager|dde-control-center) ;;
+            *) echo 'Choose a locked source project.' >&2; exit 1 ;;
+        esac ;;
+    *) echo 'Usage: build.sh [all|source PROJECT|image]' >&2; exit 1 ;;
+esac
+if [[ $MODE == image && ! -d incoming/source-debs ]]; then
+    echo 'Image assembly requires incoming/source-debs and incoming/sources artifacts.' >&2
+    exit 1
+fi
 [[ $EUID == 0 ]] || { echo 'Run with sudo on Ubuntu 24.04 amd64.' >&2; exit 1; }
 [[ $(uname -m) == x86_64 ]] || { echo 'Only amd64 supported.' >&2; exit 1; }
 for tool in debootstrap gpg gpgv mksquashfs grub-mkrescue xorriso python3 curl; do
@@ -73,6 +88,7 @@ printf 'APT::Install-Recommends "false";\nAPT::Install-Suggests "false";\nAcquir
     > "$ROOT/etc/apt/apt.conf.d/99deepin-lite"
 install -Dm644 config/dpkg-path-excludes "$ROOT/etc/dpkg/dpkg.cfg.d/01deepin-lite-prune"
 
+if [[ $MODE != image ]]; then
 # Source build dependencies live in a separate chroot and never enter the ISO.
 cp -a --reflink=auto "$ROOT" "$BUILDER"
 # The builder needs full documentation/locale fixtures for upstream tests.
@@ -91,7 +107,9 @@ install -Dm755 scripts/build-session.sh "$BUILDER/usr/local/lib/deepin-lite/buil
 chroot "$BUILDER" dbus-uuidgen --ensure=/etc/machine-id
 chroot "$BUILDER" useradd --create-home --shell /bin/bash builder
 chroot "$BUILDER" chown builder:builder /build
-for project in deepin-desktop-base dde-api dde-daemon dde-session dde-file-manager dde-control-center; do
+projects=(deepin-desktop-base dde-api dde-daemon dde-session dde-file-manager dde-control-center)
+if [[ $MODE == source ]]; then projects=("$PROJECT"); fi
+for project in "${projects[@]}"; do
     # shellcheck disable=SC2016 # Expanded by the shell inside the builder.
     chroot "$BUILDER" /bin/bash -euc '
         mkdir -p "/build/deps-$1"
@@ -118,12 +136,23 @@ for deb in pathlib.Path(sys.argv[1]).glob('*.deb'):
     if not forbidden(package,patterns):
         shutil.copy2(deb,sys.argv[2])
 PY
-python3 scripts/verify-debs.py "$ROOT/local-debs" --report "$DIST/deb-audit.txt"
 mkdir -p "$DIST/source-debs"
 cp "$ROOT"/local-debs/*.deb "$DIST/source-debs/"
 mkdir -p "$DIST/sources"
 find "$BUILDER/build" -maxdepth 1 -type f \( -name '*.dsc' -o -name '*.tar.*' -o -name '*.diff.gz' \) \
     -exec cp -t "$DIST/sources" -- {} +
+else
+    mkdir -p "$ROOT/local-debs" "$DIST/source-debs" "$DIST/sources"
+    cp incoming/source-debs/*.deb "$ROOT/local-debs/"
+    cp incoming/source-debs/*.deb "$DIST/source-debs/"
+    cp incoming/sources/* "$DIST/sources/"
+fi
+if [[ $MODE == source ]]; then
+    python3 scripts/verify-debs.py "$ROOT/local-debs" --source "$PROJECT" --report "$DIST/deb-audit.txt"
+    echo "Source package and payload audit completed: $PROJECT"
+    exit 0
+fi
+python3 scripts/verify-debs.py "$ROOT/local-debs" --report "$DIST/deb-audit.txt"
 # Preserve rebuilt packages after upgrade so deleted integrations stay absent.
 mkdir -p "$ROOT/etc/apt/preferences.d"
 python3 - "$ROOT/local-debs" > "$ROOT/etc/apt/preferences.d/98deepin-lite-source" <<'PY'

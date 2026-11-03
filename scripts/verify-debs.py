@@ -10,10 +10,15 @@ from image_cleanup import audit
 parser = argparse.ArgumentParser()
 parser.add_argument("directory")
 parser.add_argument("--report", required=True)
+parser.add_argument("--source", help="Audit one matrix source instead of the complete image set")
 args = parser.parse_args()
 base = Path(__file__).resolve().parent.parent
 lock = json.loads((base / "config/upstream.lock.json").read_text())
 expected = {s["repository"].rsplit("/", 1)[-1] for s in lock["sources"]}
+if args.source:
+    if args.source not in expected:
+        parser.error("Unknown locked source")
+    expected = {args.source}
 seen = set()
 failures = []
 report = []

@@ -1,5 +1,6 @@
 /.work/
 /dist/
+/incoming/
 /*.local.json
 __pycache__/
 *.pyc
