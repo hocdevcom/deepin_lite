@@ -10,9 +10,6 @@ on:
         description: 'Optional: comma-separated run IDs providing all successful package jobs'
         required: false
         type: string
-  push:
-    branches: [main]
-  pull_request:
 
 permissions:
   contents: read
@@ -50,7 +47,7 @@ jobs:
           python3 scripts/prepare-sources.py "$RUNNER_TEMP/deepin-lite-sources"
           find "$RUNNER_TEMP/deepin-lite-sources/dde-daemon" -name '*.go' -print0 | xargs -0 gofmt -l
   packages:
-    if: github.event_name != 'pull_request' && inputs.package_run_id == ''
+    if: inputs.package_run_id == ''
     needs: validate
     runs-on: ubuntu-24.04
     timeout-minutes: 180
@@ -92,7 +89,7 @@ jobs:
             dist/upstream.InRelease
           retention-days: 14
   build:
-    if: always() && !cancelled() && github.event_name != 'pull_request' && inputs.projects == '' && needs.validate.result == 'success' && (needs.packages.result == 'success' || inputs.package_run_id != '')
+    if: always() && !cancelled() && inputs.projects == '' && needs.validate.result == 'success' && (needs.packages.result == 'success' || inputs.package_run_id != '')
     needs: [validate, packages]
     runs-on: ubuntu-24.04
     timeout-minutes: 120

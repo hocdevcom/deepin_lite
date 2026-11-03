@@ -106,7 +106,7 @@ Không cam kết số GB hoặc “nhỏ nhất tuyệt đối” trước khi b
 ## Build trên GitHub Actions
 
 1. Đưa toàn bộ repository này lên GitHub, nhánh `main`.
-2. Mở **Actions → Deepin Lite ISO → Run workflow**. Push vào main cũng tự build.
+2. Mở **Actions → Deepin Lite ISO → Run workflow** để chạy thủ công. Push và Pull Request không tự chạy workflow.
 3. Khi source build, audit và kiểm tra live desktop đều thành công, tải artifact
    `deepin-lite-amd64-<run>`: chỉ ISO và `SHA256SUMS`.
    Artifact riêng `deepin-lite-sources-and-debs-<run>` chứa `sources/`,
@@ -115,7 +115,7 @@ Không cam kết số GB hoặc “nhỏ nhất tuyệt đối” trước khi b
 4. Artifact reports có `packages.tsv`, `applications.txt`, `services.txt`,
    `size-report.txt`, nguồn đã khóa, InRelease và log QEMU/build.
 
-PR kiểm tra cấu hình/scripts và áp dụng các sửa đổi lên nguồn đã khóa.
+Mỗi lần chạy thủ công đều kiểm tra cấu hình/scripts và áp dụng các sửa đổi lên nguồn đã khóa.
 Build gói chạy theo matrix 15 job độc lập, `fail-fast: false`: một gói lỗi không
 che lỗi của những gói phía sau. Job ISO chỉ bắt đầu khi cả 15 gói build/audit đạt.
 Lệnh Linux tương ứng: `sudo bash scripts/build.sh source <tên-gói>` hoặc
