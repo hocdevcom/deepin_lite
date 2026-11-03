@@ -132,6 +132,18 @@ def clean_package_store(root):
     remove(root, "lastore1")
     remove(root, "misc/services/org.deepin.dde.LastoreSessionHelper1.service")
     replace(root / "debian/control", " lastore-daemon,\n", "")
+    replace(root / "debian/control", """Breaks:
+ lastore-daemon(<< 0.9.64),
+Replaces:
+ lastore-daemon(<< 0.9.64),
+Conflicts:
+ dde-workspace,
+ lastore-daemon-migration,
+Provides:
+ lastore-daemon-migration,
+""", """Conflicts:
+ dde-workspace,
+""")
     replace(root / "bin/dde-session-daemon/module.go",
             '\t_ "github.com/linuxdeepin/dde-daemon/lastore1"\n', '')
     replace(root / "bin/dde-session-daemon/daemon.go", '\t\t"lastore",\n', '')
