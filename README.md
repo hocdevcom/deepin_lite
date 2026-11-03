@@ -15,6 +15,9 @@ metapackage `dde` / `deepin-desktop-environment` vì chúng kéo theo nhiều �
 - Sửa packaging của dde-api để bỏ phụ thuộc bắt buộc vào font CJK/Unifont.
   Không giả lập gói phụ thuộc, không dùng `--force-depends`.
 - Các build dependency nằm trong chroot riêng, không đưa vào ISO.
+- Test khi build gói có session D-Bus riêng và màn hình Xvfb; `dbus-x11`, Xvfb,
+  xauth chỉ cài trong builder. Không dùng `nocheck` để bỏ qua test thất bại.
+  Log từng gói nằm trong `source-build-<tên-gói>.log` ở artifact reports.
 - Suite `beige` là nhánh kho đã chọn để dựng hệ thống mutable bằng APT;
   dự án không tuyên bố tương đương ISO immutable Deepin 25 chính thức.
 

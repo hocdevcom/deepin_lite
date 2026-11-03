@@ -54,6 +54,16 @@ jobs:
           sudo bash scripts/build.sh 2>&1 | tee build.log
       - name: Boot and verify live desktop
         run: sudo bash scripts/smoke.sh
+      - name: Show source test failures
+        if: failure()
+        run: |
+          shopt -s nullglob
+          for log in dist/source-build-*.log; do
+            echo "Failure excerpts from $log"
+            grep -n -m 20 -B 8 -A 15 \
+              -e '^[[:space:]]*--- FAIL:' -e '^FAIL[[:space:]]' \
+              -e 'panic:' -e 'fatal error:' -e 'error:' "$log" || true
+          done
       - name: Build summary
         if: always()
         run: |

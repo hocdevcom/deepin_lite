@@ -77,7 +77,11 @@ cp -a --reflink=auto "$ROOT" "$BUILDER"
 mount_chroot "$BUILDER"
 python3 scripts/prepare-sources.py "$BUILDER/build"
 chroot "$BUILDER" apt-get update
-chroot "$BUILDER" apt-get install -y --no-install-recommends build-essential devscripts equivs ca-certificates
+chroot "$BUILDER" apt-get install -y --no-install-recommends \
+    build-essential devscripts equivs ca-certificates dbus-x11 xvfb xauth locales
+# Desktop tests need a private session bus and virtual X display. These test
+# dependencies stay in the builder chroot and are not added to the image.
+chroot "$BUILDER" dbus-uuidgen --ensure=/etc/machine-id
 for project in dde-api dde-daemon dde-session dde-file-manager dde-control-center; do
     # shellcheck disable=SC2016 # Expanded by the shell inside the builder.
     chroot "$BUILDER" /bin/bash -euc '
@@ -88,8 +92,12 @@ for project in dde-api dde-daemon dde-session dde-file-manager dde-control-cente
         if [ "$1" = dde-daemon ]; then
             find . -name "*.go" -print0 | xargs -0 gofmt -w
         fi
-        dpkg-buildpackage --build=full --no-sign -j2
-    ' -- "$project"
+        export XDG_RUNTIME_DIR=/run/deepin-lite-build
+        install -d -m 700 "$XDG_RUNTIME_DIR"
+        dbus-run-session -- xvfb-run --auto-servernum \
+            --server-args="-screen 0 1280x720x24 -nolisten tcp" \
+            dpkg-buildpackage --build=full --no-sign -j2
+    ' -- "$project" 2>&1 | tee "$DIST/source-build-$project.log"
 done
 mkdir "$ROOT/local-debs"
 python3 - "$BUILDER/build" "$ROOT/local-debs" <<'PY'
