@@ -1,0 +1,15 @@
+[Unit]
+Description=Deepin Lite CI live desktop check
+ConditionKernelCommandLine=deepin-lite.smoke=1
+After=display-manager.service NetworkManager.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/lib/deepin-lite/live-smoke.sh
+TimeoutStartSec=480
+StandardOutput=tty
+StandardError=tty
+TTYPath=/dev/ttyS0
+
+[Install]
+WantedBy=multi-user.target

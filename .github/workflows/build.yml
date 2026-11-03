@@ -1,0 +1,82 @@
+name: Deepin Lite ISO
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deepin-lite-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate configuration and scripts
+        run: |
+          python3 scripts/policy.py validate
+          python3 -m unittest discover -s tests -v
+          python3 -m compileall -q scripts
+          for script in scripts/*.sh; do bash -n "$script"; done
+          sudo apt-get update
+          sudo apt-get install -y shellcheck
+          shellcheck scripts/*.sh
+  build:
+    if: github.event_name != 'pull_request'
+    needs: validate
+    runs-on: ubuntu-24.04
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install build tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends debootstrap gnupg curl ca-certificates \
+            squashfs-tools xorriso grub-pc-bin grub-efi-amd64-bin grub-common mtools \
+            python3 qemu-system-x86
+          df -h .
+      - name: Build source packages and live ISO
+        run: |
+          set -o pipefail
+          sudo bash scripts/build.sh 2>&1 | tee build.log
+      - name: Boot and verify live desktop
+        run: sudo bash scripts/smoke.sh
+      - name: Build summary
+        if: always()
+        run: |
+          if [ -f dist/deepin-lite-amd64.iso ]; then
+            echo '### Deepin Lite amd64' >> "$GITHUB_STEP_SUMMARY"
+            du -h dist/deepin-lite-amd64.iso >> "$GITHUB_STEP_SUMMARY"
+          fi
+          if [ -f dist/policy-audit.txt ]; then cat dist/policy-audit.txt >> "$GITHUB_STEP_SUMMARY"; fi
+      - name: Upload verified ISO
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: deepin-lite-amd64-${{ github.run_number }}
+          path: |
+            dist/deepin-lite-amd64.iso
+            dist/SHA256SUMS
+            dist/source-debs/
+            dist/sources/
+          compression-level: 0
+          retention-days: 7
+          if-no-files-found: error
+      - name: Upload reports and logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: deepin-lite-reports-${{ github.run_number }}
+          path: |
+            build.log
+            dist/*.txt
+            dist/*.tsv
+            dist/*.json
+            dist/*.log
+            dist/upstream.InRelease
+          retention-days: 14

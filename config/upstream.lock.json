@@ -1,0 +1,35 @@
+{
+  "suite": "beige",
+  "architecture": "amd64",
+  "mirror": "https://community-packages.deepin.com/beige",
+  "components": [
+    "main",
+    "community"
+  ],
+  "keyring_source": {
+    "repository": "https://github.com/linuxdeepin/deepin-keyring",
+    "commit": "b0946c78978ecc567118254fa0ff7806a6406f99",
+    "files": {
+      "deepin-archive-camel-keyring.gpg": "d6cbcee19616a25cc766690a4ffebb835847e264e856fcbfa51f0d7c3667b6af",
+      "deepin-archive-crimson-keyring.gpg": "cccc5189e638143b6fba40cc54a818428e40d982f2638fc1a7ff333f4d9ca901",
+      "deepin-archive-uranus-keyring.gpg": "37c228f4597f41d6f5e7fb553ad508ff201ee3f2d15ca66c85e8971c3be84410",
+      "deepin-pools-keyring.gpg": "1c9c1f509477f400e80ca86bdff9c15d8eaff4940d3e27a4096d1a2641cc7fc5"
+    }
+  },
+  "sources": [
+    {
+      "repository": "https://github.com/linuxdeepin/dde-api",
+      "commit": "c675f780d394712ca38479c68022619ad0101ab3",
+      "tag": "6.0.13",
+      "url": "https://codeload.github.com/linuxdeepin/dde-api/tar.gz/c675f780d394712ca38479c68022619ad0101ab3",
+      "sha256": "abd2cfe77a0b8e66979646c0bbe9ac1572630e1fedc5245a4245aa21662e9005"
+    },
+    {
+      "repository": "https://github.com/linuxdeepin/dde-session",
+      "commit": "fe5107b19c5eb6e88299181d75526c3de2c11dfd",
+      "tag": "1.2.13",
+      "url": "https://codeload.github.com/linuxdeepin/dde-session/tar.gz/fe5107b19c5eb6e88299181d75526c3de2c11dfd",
+      "sha256": "08f1b012a0e015d2d2704c77433a471575aecc9c05d482a62e3b636c368b86bd"
+    }
+  ]
+}
