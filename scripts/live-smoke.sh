@@ -21,6 +21,7 @@ check_applications() {
     # The user manager holds DISPLAY/XAUTHORITY imported by dde-session.
     "${session[@]}" systemd-run --user --unit=deepin-lite-terminal /usr/bin/deepin-terminal
     "${session[@]}" systemd-run --user --unit=deepin-lite-file-manager /usr/bin/dde-file-manager /home/live
+    # shellcheck disable=SC2016 # Expanded by the live user's child shell.
     "${session[@]}" systemd-run --user --wait --pipe --unit=deepin-lite-window-check \
         /bin/bash -c '
             for ((i=0; i<45; i++)); do
