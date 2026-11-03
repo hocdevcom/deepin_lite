@@ -11,6 +11,9 @@ for ((i=0; i<210; i++)); do
 done
 systemctl --no-pager status lightdm NetworkManager || true
 journalctl --no-pager -b -p warning -n 100 || true
+if id live >/dev/null 2>&1; then
+    journalctl --no-pager -b _UID="$(id -u live)" -n 150 || true
+fi
 ps aux
 echo DEEPIN_LITE_DESKTOP_FAILED
 exit 1

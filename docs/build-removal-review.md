@@ -9,7 +9,7 @@ công, nên chưa chứng nhận hoạt động hoặc đã loại sạch mọi 
 
 | Hạng mục | Kết quả rà soát và cách xử lý |
 |---|---|
-| Build DEB | Upstream cung cấp `debian/control`, `debian/rules`, hướng dẫn cài build-dep và chạy dpkg-buildpackage. Giữ các file đóng gói này; dùng mk-build-deps để giải Build-Depends. |
+| Build DEB | Upstream cung cấp `debian/control`, `debian/rules`, hướng dẫn cài build-dep và chạy dpkg-buildpackage. Giữ các file đóng gói này; dùng apt-get build-dep trên thư mục source để giải Build-Depends. |
 | Quyền build | Chroot/apt cần root; biên dịch và test chuyển sang user `builder`, tạo DEB bằng fakeroot. |
 | Phiên bản downstream | Thêm entry changelog `+lite3`, giữ nguyên entry/tác giả upstream. Revision lưu trong source lock. |
 | Metadata OS | Không chép `/etc/os-version` bằng tay nữa. Build lại và cài gói deepin-desktop-base; giữ postinst/update-alternatives, bỏ App Store config và phụ thuộc font thừa tại nguồn. |
@@ -18,17 +18,17 @@ công, nên chưa chứng nhận hoạt động hoặc đã loại sạch mọi 
 | File thuộc gói | Bỏ thao tác xóa theo regex sau khi cài. Audit chỉ đọc và dừng build khi còn tích hợp; phải sửa gói/nguồn thay vì làm sai trạng thái dpkg. |
 | UADP | Khôi phục UADP và các API khóa cục bộ. Mã upstream dùng Secret Service và mã hóa/lưu khóa; không có cơ sở coi toàn bộ UADP là cloud/telemetry. |
 | Giảm tài liệu/locale | Dùng cơ chế path-exclude/path-include của dpkg khi cài. Không xóa tùy tiện file trong /usr sau cài. |
-| Test | Không bỏ qua test. Builder có OS metadata, D-Bus, Xvfb, GRUB tools và SVG converter; giữ log từng gói. Chưa chạy lại full suite trong Linux. |
+| Test | Giữ test/packaging upstream. Builder có OS metadata, D-Bus, Xvfb, GRUB tools và SVG converter; giữ log từng gói. File Manager upstream đặt nocheck, nên không tuyên bố gói này đã chạy unit test. |
 | Kiểm tra DEB | Giải nén DEB vào thư mục tạm và quét payload/maintainer scripts trước khi cài vào image; yêu cầu đủ các source đã khóa, đúng revision downstream. |
 
 ## Những gì vẫn cần xác nhận trên runner Linux
 
-1. Build và test đầy đủ cả sáu source package, đặc biệt các API và plugin sau sửa.
+1. Build và test đầy đủ cả tám source package, đặc biệt các API và plugin sau sửa.
 2. APT giải được phụ thuộc của các DEB sửa trên cùng kho beige; không xóa gói lõi.
 3. Audit payload của DEB và rootfs không còn định danh AI/cloud đã biết.
 4. QEMU kiểm tra phiên DDE, file manager, mạng, âm thanh và local login/lock.
-5. Boot firmware BIOS và UEFI thật. Smoke test hiện tại nạp kernel/initrd trực
-   tiếp, chỉ kiểm tra metadata bootloader; chưa kiểm thử đường boot GRUB thực.
+5. Smoke test đã chuyển sang boot chính ISO qua BIOS và OVMF UEFI, bao gồm
+   GRUB và live initramfs. Cần kiểm chứng kết quả runner.
 6. Theo dõi lưu lượng mạng/activation trong phiên hoạt động để tìm tích hợp chưa
    được nhận diện. Quét tên/chuỗi không thể thay cho kiểm toán toàn bộ mã nguồn.
 
@@ -57,9 +57,16 @@ ra chức năng chỉ từ nguồn gốc quốc gia, tên nhà phát triển ho�
 
 ## Kiểm chứng đã thực hiện tại máy soạn
 
-- Tải lại và xác minh checksum cả sáu source archive; áp dụng thành công các sửa đổi.
+- Tải lại và xác minh checksum cả tám source archive; áp dụng thành công các sửa đổi.
 - Kiểm tra Go parser bằng gofmt; xác nhận giữ UADP/API khóa cục bộ, bỏ adapter
   cloud và App Store config tại nguồn; changelog downstream đúng revision lite3.
 - ShellCheck, Bash syntax, Python compile và bốn unit test về package/audit đạt.
 - Chưa chạy full compile/test DEB, dpkg extraction audit thực tế hay QEMU trên máy
   Windows này. Những phần đó mới được bổ sung thành kiểm tra trong Actions.
+
+## Tiến độ runner Linux
+
+Run 41580560850 đã build và audit thành công 7/8 source package; File Manager
+được build lại trong run 41582583426 sau khi bổ sung dịch vụ xác thực cục bộ
+được khóa checksum. Chưa coi đây là kết quả ISO hoàn chỉnh. Artifact tái sử dụng
+phải thuộc job đã đạt và source archive phải khớp source chuẩn bị từ bản vá hiện tại.
