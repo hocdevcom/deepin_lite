@@ -18,6 +18,9 @@ metapackage `dde` / `deepin-desktop-environment` vì chúng kéo theo nhiều �
 - Test khi build gói có session D-Bus riêng và màn hình Xvfb; `dbus-x11`, Xvfb,
   xauth chỉ cài trong builder. Không dùng `nocheck` để bỏ qua test thất bại.
   Log từng gói nằm trong `source-build-<tên-gói>.log` ở artifact reports.
+- Builder cài `deepin-desktop-base` để test đọc được `/etc/os-version`, cùng
+  `grub-common`, `librsvg2-bin` và Unifont cho test theme. ISO chỉ nhận hai file
+  nhận diện OS và copyright từ desktop-base; không nhận bộ font phụ thuộc đó.
 - Suite `beige` là nhánh kho đã chọn để dựng hệ thống mutable bằng APT;
   dự án không tuyên bố tương đương ISO immutable Deepin 25 chính thức.
 

@@ -3,3 +3,4 @@
 /*.local.json
 __pycache__/
 *.pyc
+/deepin-lite-reports-*.zip

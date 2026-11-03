@@ -78,7 +78,17 @@ mount_chroot "$BUILDER"
 python3 scripts/prepare-sources.py "$BUILDER/build"
 chroot "$BUILDER" apt-get update
 chroot "$BUILDER" apt-get install -y --no-install-recommends \
-    build-essential devscripts equivs ca-certificates dbus-x11 xvfb xauth locales
+    build-essential devscripts equivs ca-certificates dbus-x11 xvfb xauth locales \
+    deepin-desktop-base grub-common librsvg2-bin fonts-unifont
+# adjust-grub-theme reads /etc/os-version even in the fallback-theme test.
+# Obtain genuine identity metadata from signed Deepin packages. Only copy the
+# small metadata/license files to the image, not desktop-base's font dependency tree.
+for identity in os-version deepin-version; do
+    [[ -s "$BUILDER/etc/$identity" ]] || { echo "Missing Deepin identity: $identity" >&2; exit 1; }
+    cp -L "$BUILDER/etc/$identity" "$ROOT/etc/$identity"
+done
+install -Dm644 "$BUILDER/usr/share/doc/deepin-desktop-base/copyright" \
+    "$ROOT/usr/share/doc/deepin-lite-base/copyright"
 # Desktop tests need a private session bus and virtual X display. These test
 # dependencies stay in the builder chroot and are not added to the image.
 chroot "$BUILDER" dbus-uuidgen --ensure=/etc/machine-id
