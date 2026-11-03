@@ -369,9 +369,20 @@ def clean_tray_loader(root):
     replace(root / "plugins/dde-dock/shutdown/shutdownplugin.h", '    DConfig *m_lastoreDConfig;\n', '')
 
 
+def clean_session(root):
+    # File Manager 6.5 provides org.deepin.ds.desktop inside dde-shell.
+    path = root / "systemd/CMakeLists.txt"
+    replace(path, '    dde-session-initialized.target.wants/dde-desktop.service\n', '')
+    replace(path, 'install_symlink(dde-desktop.service dde-session-initialized.target.wants)\n', '')
+    remove(root, "systemd/dde-session-initialized.target.wants/dde-desktop.service")
+    replace(root / "src/dde-session/impl/sessionmanager.cpp", '    stopDesktop();\n', '')
+    path = root / "systemd/dde-session-initialized.target.wants/dde-shell@DDE.service"
+    replace(path, '[Service]\n', 'Wants=dde-appearance.service\nAfter=dde-appearance.service\n\n[Service]\n')
+
+
 def clean_source(name, root):
     handlers = {"deepin-desktop-base": clean_desktop_base, "dde-api": clean_api,
-                "dde-daemon": clean_daemon, "dde-control-center": clean_control_center,
+                "dde-daemon": clean_daemon, "dde-session": clean_session, "dde-control-center": clean_control_center,
                 "dde-file-manager": clean_file_manager,
                 "dde-session-shell": clean_session_shell, "dde-session-ui": clean_session_ui,
                 "dde-appearance": clean_appearance, "dde-qt-dbus-factory": clean_dbus_factory,

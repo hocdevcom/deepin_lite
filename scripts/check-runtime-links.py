@@ -6,10 +6,10 @@ import sys
 
 root, report = map(Path, sys.argv[1:])
 paths = ["usr/bin/" + name for name in (
-    "dde-shell", "dde-desktop", "dde-appearance", "dde-session", "dde-control-center",
+    "dde-shell", "dde-appearance", "dde-session", "dde-control-center",
     "dde-lock", "lightdm-deepin-greeter", "deepin-terminal", "deepin-kwin_x11")]
-paths += [p.relative_to(root).as_posix()
-          for p in (root / "usr/libexec/dde-file-manager").glob("*") if p.is_file()]
+paths += ["usr/libexec/dde-file-manager",
+          "usr/lib/x86_64-linux-gnu/dde-shell/org.deepin.ds.desktop.so"]
 for pattern in ("libdtkwidget.so.5.*", "libdtk6widget.so.6.*", "libdframeworkdbus.so.2.*"):
     libraries = list((root / "usr/lib/x86_64-linux-gnu").glob(pattern))
     if not libraries:

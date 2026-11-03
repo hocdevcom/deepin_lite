@@ -1,10 +1,17 @@
 #!/usr/bin/env bash
 set -eu
 stable=0
+desktop_ready() {
+    local uid
+    uid=$(id -u live) || return 1
+    runuser -u live -- env "DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/$uid/bus" \
+        busctl --user --no-pager introspect com.deepin.dde.desktop \
+        /com/deepin/dde/desktop com.deepin.dde.desktop >/dev/null 2>&1
+}
 for ((i=0; i<210; i++)); do
     if id live >/dev/null 2>&1 && systemctl is-active --quiet NetworkManager lightdm &&
         { pgrep -u live -x dde-shell >/dev/null || pgrep -u live -x dshell >/dev/null; } &&
-        pgrep -u live -x dde-desktop >/dev/null; then
+        desktop_ready; then
         ((stable+=1))
         if ((stable >= 15)); then
             echo DEEPIN_LITE_DESKTOP_READY
