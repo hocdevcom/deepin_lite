@@ -31,6 +31,12 @@ def remove(root, relative):
 
 
 def clean_daemon(root):
+    # dh-golang may expose its private build GOPATH to `go env GOPATH`.
+    # This Makefile builds directly against Debian's packaged Go sources;
+    # its commands already prepend the local project gopath themselves.
+    replace(root / "Makefile", "export GOPATH=$(shell go env GOPATH)",
+            "export GOPATH = /usr/share/gocode")
+    replace(root / "debian/rules", "\tdh $@\n", "\tdh $@ --buildsystem=makefile\n")
     replace(root / "accounts1/user_ifc.go", '''	// set password from UnionID
 	if password == "" {
 		err := u.setPwdWithUnionID(sender)

@@ -21,6 +21,8 @@ metapackage `dde` / `deepin-desktop-environment` vì chúng kéo theo nhiều �
   Log từng gói nằm trong `source-build-<tên-gói>.log` ở artifact reports.
 - `build-session.sh` đặt primary output trên Xvfb trước khi test RandR;
   builder có `bc` phục vụ bộ test tạo theme GRUB.
+- Với dde-daemon, giữ GOPATH build dependency tại `/usr/share/gocode` và chọn
+  buildsystem makefile rõ ràng; không lấy GOPATH tạm của dh-golang bằng `go env`.
 - Builder cài `deepin-desktop-base` để test đọc được `/etc/os-version`, cùng
   `grub-common`, `librsvg2-bin` và Unifont cho test theme. ISO cài DEB desktop-base
   đã build lại, bỏ phụ thuộc font thừa và App Store config; giữ postinst và
