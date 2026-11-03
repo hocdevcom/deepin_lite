@@ -7,7 +7,7 @@ on:
         required: false
         type: string
       package_run_id:
-        description: 'Optional: comma-separated run IDs providing 8 successful package jobs'
+        description: 'Optional: comma-separated run IDs providing all successful package jobs'
         required: false
         type: string
   push:
@@ -57,7 +57,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        project: ${{ fromJSON(inputs.projects || '["deepin-desktop-base", "dde-api", "dde-daemon", "dde-session", "dde-file-manager", "dde-control-center", "dde-session-shell", "dde-session-ui"]') }}
+        project: ${{ fromJSON(inputs.projects || '["deepin-desktop-base", "dde-api", "dde-daemon", "dde-session", "dde-file-manager", "dde-control-center", "dde-session-shell", "dde-session-ui", "dde-appearance", "dde-qt-dbus-factory", "dtkwidget", "dtk6widget"]') }}
     steps:
       - uses: actions/checkout@v7
       - name: Install source builder tools

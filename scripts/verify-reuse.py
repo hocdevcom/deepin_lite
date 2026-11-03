@@ -22,7 +22,7 @@ def api(path):
 
 
 lock = json.loads(Path("config/upstream.lock.json").read_text())
-expected = {"packages (" + source["repository"].rsplit("/", 1)[-1] + ")"
+expected = {"packages (" + (source.get("name") or source["repository"].rsplit("/", 1)[-1]) + ")"
             for source in lock["sources"]}
 passed = set()
 for run_id in run_ids:

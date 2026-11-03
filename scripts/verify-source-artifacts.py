@@ -64,7 +64,7 @@ def main():
     with tempfile.TemporaryDirectory(prefix="deepin-expected-source-") as tmp:
         subprocess.run([sys.executable, "scripts/prepare-sources.py", tmp], check=True)
         for source in lock["sources"]:
-            name = source["repository"].rsplit("/", 1)[-1]
+            name = (source.get("name") or source["repository"].rsplit("/", 1)[-1])
             archives = list(Path("incoming/sources").glob(name + "_*.tar.*"))
             if len(archives) != 1:
                 raise SystemExit("Expected one native source archive for " + name)

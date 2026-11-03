@@ -16,6 +16,8 @@ IDENTIFIERS = (
     "com.deepin.deepinid", "org.deepin.dde.deepinid", "com.deepin.unionid",
     "org.deepin.dde.unionid", "org.deepin.dde.eventlog", "appstore.deepin.com",
     "community-store.deepin.com",
+    "com.iflytek.aiservice", "com.deepin.appstore",
+    "com.deepin.lastore", "org.deepin.dde.lastore",
 )
 MARKERS = tuple((name, name.encode(encoding)) for name in IDENTIFIERS
                 for encoding in ("ascii", "utf-16-le", "utf-16-be"))

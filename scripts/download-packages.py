@@ -12,7 +12,7 @@ import urllib.request
 repo = os.environ["GITHUB_REPOSITORY"]
 token = os.environ["GH_TOKEN"]
 runs = (os.environ.get("PACKAGE_RUN_ID") or os.environ["GITHUB_RUN_ID"]).split(",")
-expected = {source["repository"].rsplit("/", 1)[-1]
+expected = {(source.get("name") or source["repository"].rsplit("/", 1)[-1])
             for source in json.loads(Path("config/upstream.lock.json").read_text())["sources"]}
 out = Path("incoming")
 out.mkdir(exist_ok=True)

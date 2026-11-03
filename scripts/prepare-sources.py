@@ -16,7 +16,7 @@ out = Path(sys.argv[1]).resolve()
 out.mkdir(parents=True, exist_ok=True)
 lock = json.loads((base / "config/upstream.lock.json").read_text())
 for source in lock["sources"]:
-    name = source["repository"].rsplit("/", 1)[-1]
+    name = (source.get("name") or source["repository"].rsplit("/", 1)[-1])
     archive = out / (name + ".tar.gz")
     with urllib.request.urlopen(source["url"], timeout=120) as response:
         archive.write_bytes(response.read())

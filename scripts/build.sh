@@ -10,7 +10,7 @@ case "$MODE" in
     all|image) ;;
     source)
         case "$PROJECT" in
-            deepin-desktop-base|dde-api|dde-daemon|dde-session|dde-file-manager|dde-control-center|dde-session-shell|dde-session-ui) ;;
+            deepin-desktop-base|dde-api|dde-daemon|dde-session|dde-file-manager|dde-control-center|dde-session-shell|dde-session-ui|dde-appearance|dde-qt-dbus-factory|dtkwidget|dtk6widget) ;;
             *) echo 'Choose a locked source project.' >&2; exit 1 ;;
         esac ;;
     *) echo 'Usage: build.sh [all|source PROJECT|image]' >&2; exit 1 ;;
@@ -114,7 +114,7 @@ install -Dm755 scripts/build-session.sh "$BUILDER/usr/local/lib/deepin-lite/buil
 chroot "$BUILDER" dbus-uuidgen --ensure=/etc/machine-id
 chroot "$BUILDER" useradd --create-home --shell /bin/bash builder
 chroot "$BUILDER" chown builder:builder /build
-projects=(deepin-desktop-base dde-api dde-daemon dde-session dde-file-manager dde-control-center dde-session-shell dde-session-ui)
+projects=(deepin-desktop-base dde-api dde-daemon dde-session dde-file-manager dde-control-center dde-session-shell dde-session-ui dde-appearance dde-qt-dbus-factory dtkwidget dtk6widget)
 if [[ $MODE == source ]]; then projects=("$PROJECT"); fi
 for project in "${projects[@]}"; do
     # shellcheck disable=SC2016 # Expanded by the shell inside the builder.

@@ -256,10 +256,84 @@ def clean_session_ui(root):
     write(root / "debian/postinst", "#!/bin/sh\nset -e\n#DEBHELPER#\nexit 0\n")
 
 
+def clean_appearance(root):
+    relative_paths = ("impl/appearancesyncconfig.h", "impl/appearancesyncconfig.cpp",
+                      "modules/api/syncconfig.h", "modules/api/syncconfig.cpp")
+    cmake = root / "src/service/CMakeLists.txt"
+    for relative in relative_paths:
+        replace(cmake, "    ./" + relative + "\n", "")
+        remove(root, "src/service/" + relative)
+    path = root / "src/service/impl/appearancemanager.cpp"
+    text = path.read_text().replace('#include "appearancesyncconfig.h"\n', '')
+    text, count = re.subn(r'(?m)^\s*new (?:ThemeFont|Background)SyncConfig\([^\n]+\n', '', text)
+    if count != 2:
+        raise RuntimeError("Expected two appearance sync registrations")
+    write(path, text)
+    path = root / "src/service/modules/common/commondefine.h"
+    text, count = re.subn(r'(?m)^#define SYNCSERVICE[^\n]*\n', '', path.read_text())
+    if count != 3:
+        raise RuntimeError("Expected appearance cloud endpoint constants")
+    write(path, text)
+
+
+def clean_dbus_factory(root):
+    files = [p for p in (root / "xml").glob("*.xml") if any(
+        word in p.name.lower() for word in ("iflytek", "deepinid", "sync.daemon", "appstore", "lastore"))]
+    if len(files) != 15:
+        raise RuntimeError("Expected 15 AI/cloud/store D-Bus binding definitions")
+    for path in files:
+        path.unlink()
+
+
+def clean_dtk_widget(root):
+    path = root / "src/widgets/dlineedit.cpp"
+    text = path.read_text()
+    start = text.index('        auto msg = QDBusMessage::createMethodCall("com.iflytek.aiassistant"')
+    end = text.index('        //FIXME:', start)
+    text = text[:start] + text[end:]
+    text = text.replace('le->echoMode() == QLineEdit::Password ||\n'
+                        '                (!textToSpeechIsEnabled() && !textToTranslateIsEnabled() && !speechToTextIsEnabled())',
+                        'le->echoMode() == QLineEdit::Password')
+    write(path, text)
+    path = root / "src/widgets/dtextedit.cpp"
+    text, count = re.subn(r'(?ms)^void DTextEdit::contextMenuEvent\(QContextMenuEvent \*e\)\n\{.*?^}\n',
+                         'void DTextEdit::contextMenuEvent(QContextMenuEvent *e)\n{\n    QTextEdit::contextMenuEvent(e);\n}\n',
+                         path.read_text())
+    if count != 1:
+        raise RuntimeError("Expected text edit AI context menu implementation")
+    write(path, text)
+    path = root / "src/widgets/dsearchedit.cpp"
+    text = path.read_text()
+    text, count = re.subn(r'(?ms)^bool DSearchEdit::isVoiceInput\(\) const\n\{.*?^}\n',
+                         'bool DSearchEdit::isVoiceInput() const\n{\n    return false;\n}\n', text)
+    if count != 1:
+        raise RuntimeError("Expected voice input ABI query")
+    text, count = re.subn(r'(?ms)^void DSearchEditPrivate::_q_onVoiceActionTrigger\(bool checked\)\n\{.*?^}\n', '', text)
+    if count != 1:
+        raise RuntimeError("Expected private AI voice handler")
+    text, count = re.subn(r'(?ms)^#ifdef ENABLE_AI\n.*?^#endif[^\n]*\n', '', text)
+    if count != 4:
+        raise RuntimeError("Expected four search-edit AI implementation blocks")
+    text = text.replace('#undef ENABLE_AI\n', '').replace('#include "dsearchedit.moc"\n', '')
+    write(path, text)
+    path = root / "src/widgets/private/dsearchedit_p.h"
+    text, count = re.subn(r'(?ms)^#ifdef ENABLE_AI\n.*?^#endif[^\n]*\n', '', path.read_text())
+    if count != 1:
+        raise RuntimeError("Expected private voice backend fields")
+    text = text.replace('class VoiceDevice;\n', '').replace('    void _q_onVoiceActionTrigger(bool checked);\n', '')
+    write(path, text)
+    replace(root / "include/widgets/dsearchedit.h", '    D_PRIVATE_SLOT(void _q_onVoiceActionTrigger(bool))\n', '')
+    for path in (root / "src").rglob("*.cpp"):
+        if "com.iflytek" in path.read_text():
+            raise RuntimeError("AI implementation remains: " + str(path))
+
+
 def clean_source(name, root):
     handlers = {"deepin-desktop-base": clean_desktop_base, "dde-api": clean_api,
                 "dde-daemon": clean_daemon, "dde-control-center": clean_control_center,
                 "dde-file-manager": clean_file_manager,
-                "dde-session-shell": clean_session_shell, "dde-session-ui": clean_session_ui}
+                "dde-session-shell": clean_session_shell, "dde-session-ui": clean_session_ui,
+                "dde-appearance": clean_appearance, "dde-qt-dbus-factory": clean_dbus_factory,
+                "dtkwidget": clean_dtk_widget, "dtk6widget": clean_dtk_widget}
     if name in handlers:
         handlers[name](Path(root))
