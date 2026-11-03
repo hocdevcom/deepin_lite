@@ -15,6 +15,8 @@ wpasupplicant
 iproute2
 iputils-ping
 xserver-xorg-core
+# DDE/QML and QEMU need an OpenGL renderer with recommends disabled.
+libgl1-mesa-dri
 xserver-xorg-input-libinput
 xserver-xorg-video-all
 xinit

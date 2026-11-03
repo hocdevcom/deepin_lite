@@ -16,13 +16,24 @@ def forbidden(name, patterns):
 
 def main():
     p = argparse.ArgumentParser()
-    p.add_argument("action", choices=["purge-list", "audit", "validate"])
+    p.add_argument("action", choices=["purge-list", "audit", "validate", "check-purge"])
     p.add_argument("--deny", default="config/deny-packages.txt")
     p.add_argument("--packages", default="config/packages.txt")
     p.add_argument("--manifest")
     p.add_argument("--require")
     a = p.parse_args()
     patterns = lines(a.deny)
+    if a.action == "check-purge":
+        if not a.manifest:
+            p.error("--manifest must contain the APT simulation output")
+        removed = {fields[1].split(":", 1)[0]
+                   for line in Path(a.manifest).read_text().splitlines()
+                   if len(fields := line.split()) > 1 and fields[0] in {"Remv", "Purg"}}
+        protected = set(lines(a.require or a.packages))
+        if bad := removed & protected:
+            raise SystemExit("Purge would remove required packages: " + ", ".join(sorted(bad)))
+        print(f"PASS: purge plan preserves all {len(protected)} required packages")
+        return
     if a.action == "validate":
         bad = [n for n in lines(a.packages) if forbidden(n, patterns)]
         if bad:

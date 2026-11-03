@@ -2,6 +2,12 @@
 path-exclude=/usr/share/man/*
 path-exclude=/usr/share/info/*
 path-exclude=/usr/share/gtk-doc/*
+path-exclude=/usr/share/deepin-manual/manual-assets/*
+path-exclude=/usr/share/dsg/icons/*/UosAiAssistant.dci
+path-exclude=/usr/share/deepin-app-store
+path-exclude=/usr/share/deepin-app-store/*
+path-exclude=/usr/share/deepin-appstore
+path-exclude=/usr/share/deepin-appstore/*
 path-exclude=/usr/share/doc/*
 path-include=/usr/share/doc/*/copyright
 path-include=/usr/share/doc/*/*LICENSE*
@@ -10,3 +16,9 @@ path-include=/usr/share/doc/*/*license*
 path-exclude=/usr/share/locale/*
 path-include=/usr/share/locale/en*
 path-include=/usr/share/locale/vi*
+# Qt application catalogs live outside the gettext locale tree.
+path-exclude=/usr/share/*/translations/*.qm
+path-include=/usr/share/*/translations/*_en*.qm
+path-include=/usr/share/*/translations/*_vi*.qm
+path-include=/usr/share/*/translations/en*.qm
+path-include=/usr/share/*/translations/vi*.qm

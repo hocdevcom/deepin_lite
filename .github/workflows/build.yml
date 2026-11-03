@@ -1,23 +1,33 @@
 name: Deepin Lite ISO
 on:
   workflow_dispatch:
+    inputs:
+      projects:
+        description: 'Optional JSON source subset for diagnostics; blank builds full ISO'
+        required: false
+        type: string
+      package_run_id:
+        description: 'Optional: comma-separated run IDs providing all successful package jobs'
+        required: false
+        type: string
   push:
     branches: [main]
   pull_request:
 
 permissions:
   contents: read
+  actions: read
 
 concurrency:
-  group: deepin-lite-${{ github.ref }}
+  group: deepin-lite-${{ github.ref }}-${{ inputs.projects || 'full' }}
   cancel-in-progress: true
 
 jobs:
   validate:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
         with:
           go-version: '1.24.x'
           cache: false
@@ -40,16 +50,16 @@ jobs:
           python3 scripts/prepare-sources.py "$RUNNER_TEMP/deepin-lite-sources"
           find "$RUNNER_TEMP/deepin-lite-sources/dde-daemon" -name '*.go' -print0 | xargs -0 gofmt -l
   packages:
-    if: github.event_name != 'pull_request'
+    if: github.event_name != 'pull_request' && inputs.package_run_id == ''
     needs: validate
     runs-on: ubuntu-24.04
     timeout-minutes: 180
     strategy:
       fail-fast: false
       matrix:
-        project: [deepin-desktop-base, dde-api, dde-daemon, dde-session, dde-file-manager, dde-control-center]
+        project: ${{ fromJSON(inputs.projects || '["deepin-desktop-base", "dde-api", "dde-daemon", "dde-session", "dde-file-manager", "dde-control-center", "dde-session-shell", "dde-session-ui", "dde-appearance", "dde-qt-dbus-factory", "dtkwidget", "dtk6widget", "dde-api-proxy", "dde-tray-loader", "deepin-desktop-theme"]') }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Install source builder tools
         run: |
           sudo apt-get update
@@ -62,7 +72,7 @@ jobs:
           set -o pipefail
           sudo bash scripts/build.sh source "$PROJECT" 2>&1 | tee build.log
       - name: Upload audited source packages
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: deepin-package-${{ matrix.project }}
           path: |
@@ -72,7 +82,7 @@ jobs:
           if-no-files-found: error
       - name: Upload package logs
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: deepin-source-report-${{ matrix.project }}-${{ github.run_number }}
           path: |
@@ -82,24 +92,35 @@ jobs:
             dist/upstream.InRelease
           retention-days: 14
   build:
-    if: github.event_name != 'pull_request'
-    needs: packages
+    if: always() && !cancelled() && github.event_name != 'pull_request' && inputs.projects == '' && needs.validate.result == 'success' && (needs.packages.result == 'success' || inputs.package_run_id != '')
+    needs: [validate, packages]
     runs-on: ubuntu-24.04
     timeout-minutes: 120
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Install build tools
         run: |
           sudo apt-get update
           sudo apt-get install -y --no-install-recommends debootstrap gnupg curl ca-certificates \
             squashfs-tools xorriso grub-pc-bin grub-efi-amd64-bin grub-common mtools \
-            python3 qemu-system-x86
+            python3 qemu-system-x86 ovmf
           df -h .
-      - uses: actions/download-artifact@v4
-        with:
-          pattern: deepin-package-*
-          path: incoming
-          merge-multiple: true
+      - name: Verify reused package provenance
+        if: inputs.package_run_id != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PACKAGE_RUN_ID: ${{ inputs.package_run_id }}
+        run: python3 scripts/verify-reuse.py
+      - name: Collect audited package artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PACKAGE_RUN_ID: ${{ inputs.package_run_id }}
+        run: python3 scripts/download-packages.py
+      - name: Verify reused source contents
+        if: inputs.package_run_id != ''
+        run: |
+          set -o pipefail
+          python3 scripts/verify-source-artifacts.py | tee source-reuse-audit.txt
       - name: Assemble audited packages into live ISO
         run: |
           set -o pipefail
@@ -126,7 +147,7 @@ jobs:
           if [ -f dist/policy-audit.txt ]; then cat dist/policy-audit.txt >> "$GITHUB_STEP_SUMMARY"; fi
       - name: Upload verified ISO
         if: success()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: deepin-lite-amd64-${{ github.run_number }}
           path: |
@@ -134,19 +155,23 @@ jobs:
             dist/SHA256SUMS
             dist/source-debs/
             dist/sources/
+            dist/runtime-debs/
           compression-level: 0
           retention-days: 7
           if-no-files-found: error
       - name: Upload reports and logs
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: deepin-lite-reports-${{ github.run_number }}
           path: |
             build.log
+            package-provenance.json
+            source-reuse-audit.txt
             dist/*.txt
             dist/*.tsv
             dist/*.json
             dist/*.log
+            dist/desktop-*.png
             dist/upstream.InRelease
           retention-days: 14

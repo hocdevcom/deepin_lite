@@ -58,6 +58,118 @@
       "tag": "6.0.78.1",
       "url": "https://codeload.github.com/linuxdeepin/dde-control-center/tar.gz/e1510629ac4794508ce5e4a6a319c561cb9ed521",
       "sha256": "656d2d812b8d298dc64fe8793d0987382b24bc503253b3f6ce88f9b768a3c189"
+    },
+    {
+      "repository": "https://github.com/linuxdeepin/dde-session-shell",
+      "source_kind": "official-debian-native",
+      "version": "6.0.23",
+      "url": "https://community-packages.deepin.com/beige/pool/main/d/dde-session-shell/dde-session-shell_6.0.23.tar.xz",
+      "sha256": "55623b72d55ebb7a094f1d1c84afa20567191b85683b1e9896f5c23a07344160",
+      "authenticated_source_index": {
+        "url": "https://community-packages.deepin.com/beige/dists/beige/main/source/Sources.gz",
+        "sha256": "9fb54648a1d189586dec5557f60cc69a022ca9ed3b0d5e4be98cc2cde089e34f",
+        "inrelease_sha256": "e8b362eca8946dd23427ab65e6e7bfb5066b8e0c348948178b55c8dcf053d5cf"
+      }
+    },
+    {
+      "repository": "https://github.com/linuxdeepin/dde-session-ui",
+      "source_kind": "official-debian-native",
+      "version": "6.0.22",
+      "url": "https://community-packages.deepin.com/beige/pool/main/d/dde-session-ui/dde-session-ui_6.0.22.tar.xz",
+      "sha256": "2dbc7c5a6e501350edac53fdfb3c697fda9382dd98067ec2c78d0c50153d4e0d",
+      "authenticated_source_index": {
+        "url": "https://community-packages.deepin.com/beige/dists/beige/main/source/Sources.gz",
+        "sha256": "9fb54648a1d189586dec5557f60cc69a022ca9ed3b0d5e4be98cc2cde089e34f",
+        "inrelease_sha256": "e8b362eca8946dd23427ab65e6e7bfb5066b8e0c348948178b55c8dcf053d5cf"
+      }
+    },
+    {
+      "name": "dde-appearance",
+      "repository": "https://github.com/linuxdeepin/dde-appearance",
+      "source_kind": "official-debian-native",
+      "version": "1.1.38",
+      "url": "https://community-packages.deepin.com/beige/pool/main/d/dde-appearance/dde-appearance_1.1.38.tar.xz",
+      "sha256": "611a81ce3c48c881cad259272e4e77b6871efcf2eccdd27f451dc47ede1eeb44",
+      "authenticated_source_index": {
+        "url": "https://community-packages.deepin.com/beige/dists/beige/main/source/Sources.gz",
+        "sha256": "9fb54648a1d189586dec5557f60cc69a022ca9ed3b0d5e4be98cc2cde089e34f",
+        "inrelease_sha256": "e8b362eca8946dd23427ab65e6e7bfb5066b8e0c348948178b55c8dcf053d5cf"
+      }
+    },
+    {
+      "name": "dde-qt-dbus-factory",
+      "repository": "https://github.com/linuxdeepin/dde-qt-dbus-factory",
+      "source_kind": "official-debian-native",
+      "version": "6.0.1",
+      "url": "https://community-packages.deepin.com/beige/pool/main/d/dde-qt-dbus-factory/dde-qt-dbus-factory_6.0.1.tar.xz",
+      "sha256": "6f2fb7ccf0f350dfee7a7f9c23a572d3499b9edf547bc3d6bd0cee4e594580f6",
+      "authenticated_source_index": {
+        "url": "https://community-packages.deepin.com/beige/dists/beige/main/source/Sources.gz",
+        "sha256": "9fb54648a1d189586dec5557f60cc69a022ca9ed3b0d5e4be98cc2cde089e34f",
+        "inrelease_sha256": "e8b362eca8946dd23427ab65e6e7bfb5066b8e0c348948178b55c8dcf053d5cf"
+      }
+    },
+    {
+      "name": "dtkwidget",
+      "repository": "https://github.com/linuxdeepin/dtkwidget",
+      "source_kind": "official-debian-native",
+      "version": "5.7.5",
+      "url": "https://community-packages.deepin.com/beige/pool/main/d/dtkwidget/dtkwidget_5.7.5.tar.xz",
+      "sha256": "7e68f5129545f99e24902ccdbfdd7c0ff1a1345db6226cb367a81dd0de725867",
+      "authenticated_source_index": {
+        "url": "https://community-packages.deepin.com/beige/dists/beige/main/source/Sources.gz",
+        "sha256": "9fb54648a1d189586dec5557f60cc69a022ca9ed3b0d5e4be98cc2cde089e34f",
+        "inrelease_sha256": "e8b362eca8946dd23427ab65e6e7bfb5066b8e0c348948178b55c8dcf053d5cf"
+      }
+    },
+    {
+      "name": "dtk6widget",
+      "repository": "https://github.com/linuxdeepin/dtkwidget",
+      "source_kind": "official-debian-native",
+      "version": "6.0.25",
+      "url": "https://community-packages.deepin.com/beige/pool/main/d/dtk6widget/dtk6widget_6.0.25.tar.xz",
+      "sha256": "d8bccaea00429e03065d9c3ae16f30803e0ef37b98ab611b3cb46962d6765294",
+      "authenticated_source_index": {
+        "url": "https://community-packages.deepin.com/beige/dists/beige/main/source/Sources.gz",
+        "sha256": "9fb54648a1d189586dec5557f60cc69a022ca9ed3b0d5e4be98cc2cde089e34f",
+        "inrelease_sha256": "e8b362eca8946dd23427ab65e6e7bfb5066b8e0c348948178b55c8dcf053d5cf"
+      }
+    },
+    {
+      "repository": "https://github.com/linuxdeepin/dde-api-proxy",
+      "source_kind": "official-debian-native",
+      "version": "1.0.19.1",
+      "url": "https://community-packages.deepin.com/beige/pool/main/d/dde-api-proxy/dde-api-proxy_1.0.19.1.tar.xz",
+      "sha256": "41f45cd971abc30e55c543807b9cebad135d767ca4dc84997a9759d891e2c276",
+      "authenticated_source_index": {
+        "url": "https://community-packages.deepin.com/beige/dists/beige/main/source/Sources.gz",
+        "sha256": "9fb54648a1d189586dec5557f60cc69a022ca9ed3b0d5e4be98cc2cde089e34f",
+        "inrelease_sha256": "e8b362eca8946dd23427ab65e6e7bfb5066b8e0c348948178b55c8dcf053d5cf"
+      }
+    },
+    {
+      "repository": "https://github.com/linuxdeepin/dde-tray-loader",
+      "source_kind": "official-debian-native",
+      "version": "1.0.10",
+      "url": "https://community-packages.deepin.com/beige/pool/main/d/dde-tray-loader/dde-tray-loader_1.0.10.tar.xz",
+      "sha256": "2925b7308ba8b731e415e9afa2fddf503f70fc113c80c2d8919feb4db4c5009d",
+      "authenticated_source_index": {
+        "url": "https://community-packages.deepin.com/beige/dists/beige/main/source/Sources.gz",
+        "sha256": "9fb54648a1d189586dec5557f60cc69a022ca9ed3b0d5e4be98cc2cde089e34f",
+        "inrelease_sha256": "e8b362eca8946dd23427ab65e6e7bfb5066b8e0c348948178b55c8dcf053d5cf"
+      }
+    },
+    {
+      "repository": "https://github.com/linuxdeepin/deepin-desktop-theme",
+      "source_kind": "official-debian-native",
+      "version": "1.0.27",
+      "url": "https://community-packages.deepin.com/beige/pool/main/d/deepin-desktop-theme/deepin-desktop-theme_1.0.27.tar.xz",
+      "sha256": "cf3a735b4480eb3b4cf9cd90c8821f834aa51c48917606afc1ecaea2df92fcb0",
+      "authenticated_source_index": {
+        "url": "https://community-packages.deepin.com/beige/dists/beige/main/source/Sources.gz",
+        "sha256": "9fb54648a1d189586dec5557f60cc69a022ca9ed3b0d5e4be98cc2cde089e34f",
+        "inrelease_sha256": "e8b362eca8946dd23427ab65e6e7bfb5066b8e0c348948178b55c8dcf053d5cf"
+      }
     }
   ],
   "local_revision": "lite3"

@@ -5,3 +5,4 @@
 __pycache__/
 *.pyc
 /deepin-lite-reports-*.zip
+/artifacts/

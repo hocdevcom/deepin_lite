@@ -14,14 +14,18 @@ NAMES = re.compile(r"aiassistant|uos[-_.]ai|deepin[-_.](?:ai|cloud|sync)|deepini
 IDENTIFIERS = (
     "com.iflytek.aiassistant", "com.deepin.sync", "org.deepin.dde.sync",
     "com.deepin.deepinid", "org.deepin.dde.deepinid", "com.deepin.unionid",
-    "org.deepin.dde.unionid", "org.deepin.dde.eventlog", ".appstore.deepin.com",
+    "org.deepin.dde.unionid", "org.deepin.dde.eventlog", "appstore.deepin.com",
+    "community-store.deepin.com",
+    "com.iflytek.aiservice", "com.deepin.appstore",
+    "com.deepin.lastore", "org.deepin.dde.lastore",
+    "org.deepin.lastore",
 )
 MARKERS = tuple((name, name.encode(encoding)) for name in IDENTIFIERS
                 for encoding in ("ascii", "utf-16-le", "utf-16-be"))
 
 
 def entries(root):
-    for relative in ("etc", "usr", "opt", "DEBIAN"):
+    for relative in ("etc", "usr", "opt", "bin", "sbin", "lib", "lib64", "var", "DEBIAN"):
         start = root / relative
         if not start.is_dir() or start.is_symlink():
             continue

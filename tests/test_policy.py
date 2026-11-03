@@ -17,7 +17,7 @@ class PolicyTest(unittest.TestCase):
         for name in ["uos-ai:amd64", "deepin-sync-daemon", "com.qq.im", "linglong-bin", "fcitx5-module-cloudpinyin"]:
             with self.subTest(name=name):
                 self.assertTrue(policy.forbidden(name, patterns))
-        for name in ["libasyncns0", "systemd-timesyncd", "rsync", "dde-daemon", "deepin-terminal"]:
+        for name in ["libasyncns0", "systemd-dev", "systemd-timesyncd", "rsync", "dde-daemon", "deepin-terminal"]:
             with self.subTest(name=name):
                 self.assertFalse(policy.forbidden(name, patterns))
 
@@ -27,6 +27,17 @@ class PolicyTest(unittest.TestCase):
             for content, expected in [("", False), ("uos-ai\t1.0\t42\n", False), ("dde-daemon\t6.0\t42\n", True)]:
                 manifest.write_text(content)
                 result = subprocess.run([sys.executable, "scripts/policy.py", "audit", "--manifest", str(manifest)], cwd=ROOT, capture_output=True)
+                self.assertEqual(result.returncode == 0, expected)
+
+    def test_purge_plan_preserves_required_packages(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            plan = Path(tmp) / "purge-plan.txt"
+            for content, expected in [("Purg deepin-sync [1.0]\n", True),
+                                      ("Purg systemd-sysv:amd64 [255.2]\n", False),
+                                      ("Remv dde-session [1.2]\n", False)]:
+                plan.write_text(content)
+                result = subprocess.run([sys.executable, "scripts/policy.py", "check-purge",
+                                         "--manifest", str(plan)], cwd=ROOT, capture_output=True)
                 self.assertEqual(result.returncode == 0, expected)
 
 

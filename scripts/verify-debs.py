@@ -14,7 +14,7 @@ parser.add_argument("--source", help="Audit one matrix source instead of the com
 args = parser.parse_args()
 base = Path(__file__).resolve().parent.parent
 lock = json.loads((base / "config/upstream.lock.json").read_text())
-expected = {s["repository"].rsplit("/", 1)[-1] for s in lock["sources"]}
+expected = {(s.get("name") or s["repository"].rsplit("/", 1)[-1]) for s in lock["sources"]}
 if args.source:
     if args.source not in expected:
         parser.error("Unknown locked source")
