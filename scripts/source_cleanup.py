@@ -120,10 +120,52 @@ def clean_daemon(root):
     data = json.loads(path.read_text())
     data["Actions"] = [a for a in data["Actions"] if "iflytek" not in a.get("Action", "").lower()]
     write(path, json.dumps(data, ensure_ascii=False, indent=2) + "\n")
+    clean_package_store(root)
     # Fail if any implementation references survive in compiled Go files.
     for path in root.rglob("*.go"):
         if re.search(r'\bdsync\b|\.syncConfig\b|setPwdWithUnionID|com\.deepin\.sync|org\.deepin\.dde\.eventlog', path.read_text(), flags=re.I):
             raise RuntimeError(f"Cloud integration still present: {path}")
+
+
+def clean_package_store(root):
+    # APT provides updates; omit Deepin's store backend and session integration.
+    remove(root, "lastore1")
+    remove(root, "misc/services/org.deepin.dde.LastoreSessionHelper1.service")
+    replace(root / "debian/control", " lastore-daemon,\n", "")
+    replace(root / "bin/dde-session-daemon/module.go",
+            '\t_ "github.com/linuxdeepin/dde-daemon/lastore1"\n', '')
+    replace(root / "bin/dde-session-daemon/daemon.go", '\t\t"lastore",\n', '')
+    path = root / "Makefile"
+    text, count = re.subn(r'(?m)^.*\$\{GOPKG_PREFIX\}/lastore1 \\\n', '', path.read_text())
+    if count != 1:
+        raise RuntimeError("Expected Lastore module build target")
+    write(path, text)
+    path = root / "misc/dsg-configs/org.deepin.dde.daemon.loader.json"
+    data = json.loads(path.read_text())
+    del data["contents"]["lastore"]
+    write(path, json.dumps(data, ensure_ascii=False, indent=2) + "\n")
+    # Keep local locale generation and queries, remove automatic store installs.
+    path = root / "langselector1/locale.go"
+    text = path.read_text()
+    start = text.index('\t// send notification\n', text.index('func (lang *LangSelector) setLocale('))
+    end = text.index('\t// generate locale\n', start)
+    text = text[:start] + '\tsendNotify(localeIconStart, "", notifyTxtStart)\n\n' + text[end:]
+    text = text.replace('\terr = lang.generateLocale(locale)\n', '\terr := lang.generateLocale(locale)\n')
+    start = text.index('\t// install language support packages\n')
+    end = text.index('\tsendNotify(localeIconFinished', start)
+    text = text[:start] + text[end:]
+    for function in ('installLangSupportPackages', 'installPackages'):
+        text, count = re.subn(r'(?ms)^func \(lang \*LangSelector\) ' + function + r'\(.*?^}\n', '', text)
+        if count != 1:
+            raise RuntimeError("Expected store installation function: " + function)
+    text, count = re.subn(r'(?ms)^func isNetworkEnable\(.*?^}\n', '', text)
+    if count != 1:
+        raise RuntimeError("Expected language-download network check")
+    text, count = re.subn(r'(?m)^\t+notifyTxtStartWithInstall[^\n]*\n', '', text)
+    if count != 2:
+        raise RuntimeError("Expected store language-install notification")
+    text = re.sub(r'(?m)^\t(?:lastore|libnetwork) "github.com/linuxdeepin/go-dbus-factory/[^\n]+\n', '', text)
+    write(path, text)
 
 
 def clean_control_center(root):

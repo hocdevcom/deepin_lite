@@ -14,7 +14,8 @@ NAMES = re.compile(r"aiassistant|uos[-_.]ai|deepin[-_.](?:ai|cloud|sync)|deepini
 IDENTIFIERS = (
     "com.iflytek.aiassistant", "com.deepin.sync", "org.deepin.dde.sync",
     "com.deepin.deepinid", "org.deepin.dde.deepinid", "com.deepin.unionid",
-    "org.deepin.dde.unionid", "org.deepin.dde.eventlog", ".appstore.deepin.com",
+    "org.deepin.dde.unionid", "org.deepin.dde.eventlog", "appstore.deepin.com",
+    "community-store.deepin.com",
 )
 MARKERS = tuple((name, name.encode(encoding)) for name in IDENTIFIERS
                 for encoding in ("ascii", "utf-16-le", "utf-16-be"))

@@ -2,6 +2,7 @@
 dde
 deepin-desktop-environment*
 deepin-app-store*
+lastore*
 deepin-home*
 deepin-feedback*
 deepin-log-viewer*
