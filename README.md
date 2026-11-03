@@ -17,7 +17,7 @@ metapackage `dde` / `deepin-desktop-environment` vì chúng kéo theo nhiều �
   Sources.gz được xác thực qua chữ ký InRelease; provenance ghi trong lock.
   Tương tự, build lại Appearance, Qt D-Bus factory, DTK Qt5/Qt6, API proxy và
   tray loader từ đúng source package của kho để giữ ABI đang dùng. Tổng cộng
-  14 source package; Qt5/Qt6 dùng tên dự án riêng trong source lock.
+  15 source package; Qt5/Qt6 dùng tên dự án riêng trong source lock.
   Đây **không phải** bản biên dịch toàn bộ Deepin từ nguồn.
 - Giữ dịch vụ xác thực cục bộ `deepin-authenticate` (LGPL), phụ thuộc của
   lock/session. DEB này được tải riêng từ kho chính thức, khóa phiên bản và
@@ -109,8 +109,8 @@ Không cam kết số GB hoặc “nhỏ nhất tuyệt đối” trước khi b
    `size-report.txt`, nguồn đã khóa, InRelease và log QEMU/build.
 
 PR kiểm tra cấu hình/scripts và áp dụng các sửa đổi lên nguồn đã khóa.
-Build gói chạy theo matrix 14 job độc lập, `fail-fast: false`: một gói lỗi không
-che lỗi của những gói phía sau. Job ISO chỉ bắt đầu khi cả 14 gói build/audit đạt.
+Build gói chạy theo matrix 15 job độc lập, `fail-fast: false`: một gói lỗi không
+che lỗi của những gói phía sau. Job ISO chỉ bắt đầu khi cả 15 gói build/audit đạt.
 Lệnh Linux tương ứng: `sudo bash scripts/build.sh source <tên-gói>` hoặc
 `sudo bash scripts/build.sh image` (với artifact đã tải vào `incoming/`).
 Workflow không cần PAT hay secrets.
@@ -165,3 +165,6 @@ Nguồn tham khảo: [Deepin GitHub](https://github.com/linuxdeepin),
 Bản File Manager đã khóa cung cấp desktop qua plugin dde-shell, không có binary
 `dde-desktop`. Session bỏ unit khởi chạy binary cũ; smoke test xác nhận D-Bus
 `com.deepin.dde.desktop` và giữ desktop ổn định 30 giây cho mỗi firmware.
+
+Theme Bloom cũng được build lại từ nguồn đã khóa; xóa file icon AI trước khi
+đóng gói, giữ copyright và chỉ cài gói Bloom, bỏ các theme phụ.
