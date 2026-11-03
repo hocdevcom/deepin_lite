@@ -2,8 +2,9 @@
 
 Kết luận: đóng gói thành phần theo hệ Debian của Deepin là hướng phù hợp.
 Tuy nhiên, dự án là bản fork tùy biến và Live ISO tự dựng, không phải pipeline
-ISO chính thức hay bản Deepin 25 immutable. Chưa có lần build toàn bộ/boot thành
-công, nên chưa chứng nhận hoạt động hoặc đã loại sạch mọi tích hợp trực tuyến.
+ISO chính thức hay bản Deepin 25 immutable. Run 41602451742 đã tạo ISO thành công và boot desktop qua cả BIOS/UEFI.
+Audit chỉ chứng minh không còn các gói/định danh đã kiểm tra; không thay cho
+kiểm toán toàn bộ mã nguồn hoặc lưu lượng mạng.
 
 ## Đối chiếu và sửa
 
@@ -23,7 +24,7 @@ công, nên chưa chứng nhận hoạt động hoặc đã loại sạch mọi 
 
 ## Những gì vẫn cần xác nhận trên runner Linux
 
-1. Build và test đầy đủ cả tám source package, đặc biệt các API và plugin sau sửa.
+1. Build và test đầy đủ cả 15 source package, đặc biệt các API và plugin sau sửa.
 2. APT giải được phụ thuộc của các DEB sửa trên cùng kho beige; không xóa gói lõi.
 3. Audit payload của DEB và rootfs không còn định danh AI/cloud đã biết.
 4. QEMU kiểm tra phiên DDE, file manager, mạng, âm thanh và local login/lock.
@@ -57,7 +58,7 @@ ra chức năng chỉ từ nguồn gốc quốc gia, tên nhà phát triển ho�
 
 ## Kiểm chứng đã thực hiện tại máy soạn
 
-- Tải lại và xác minh checksum cả tám source archive; áp dụng thành công các sửa đổi.
+- Tải lại và xác minh checksum cả 15 source archive; áp dụng thành công các sửa đổi.
 - Kiểm tra Go parser bằng gofmt; xác nhận giữ UADP/API khóa cục bộ, bỏ adapter
   cloud và App Store config tại nguồn; changelog downstream đúng revision lite3.
 - ShellCheck, Bash syntax, Python compile và bốn unit test về package/audit đạt.
@@ -70,3 +71,14 @@ Run 41580560850 đã build và audit thành công 7/8 source package; File Manag
 được build lại trong run 41582583426 sau khi bổ sung dịch vụ xác thực cục bộ
 được khóa checksum. Chưa coi đây là kết quả ISO hoàn chỉnh. Artifact tái sử dụng
 phải thuộc job đã đạt và source archive phải khớp source chuẩn bị từ bản vá hiện tại.
+
+## Kết quả kiểm chứng hoàn tất
+
+- [Run ISO 41602451742](https://github.com/hocdevcom/deepin_lite/actions/runs/41602451742): success, artifact deepin-lite-amd64-29.
+- 15 source package build/audit đạt, source tái sử dụng khớp bản vá hiện tại.
+- 1.023 gói runtime qua 103 quy tắc; rootfs known-identifier audit PASS.
+- 14 executable/thư viện lõi qua kiểm tra ELF relocation và phụ thuộc.
+- Boot chính ISO qua BIOS và OVMF UEFI, desktop D-Bus ổn định 30 giây; ảnh
+  màn hình có thanh dock DDE trên nền đen. Chưa kiểm tra tương tác tất cả ứng dụng.
+- Không có annotation Node.js 20 trên job ISO hiện hành.
+- Live ISO chưa có installer, Secure Boot chưa hỗ trợ.
