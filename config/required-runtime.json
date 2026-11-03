@@ -11,5 +11,14 @@
       "sha256": "e8dd634c832c8c68e15cd2110f68e62717ab38c0450432114bc3ec6c897d66fc",
       "inrelease_sha256": "e8b362eca8946dd23427ab65e6e7bfb5066b8e0c348948178b55c8dcf053d5cf"
     }
+  },
+  {
+    "package": "deepin-installer",
+    "version": "7.0.63",
+    "sha256": "b5db54741355b66f2050ee4e3c3743fcf43bf294adda1daa3cde9530f6ee527b",
+    "url": "https://community-packages.deepin.com/beige/pool/commercial/d/deepin-installer-reborn/deepin-installer_7.0.63_amd64.deb",
+    "purpose": "Deepin system installer adjusted for Deepin Lite (removed commercial license and AI/cloud dependencies)",
+    "license": "GPL-3+",
+    "patch": "deepin-installer"
   }
 ]

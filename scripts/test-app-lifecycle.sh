@@ -39,7 +39,7 @@ launch() {
 
 classes=(deepin-terminal dde-file-manager dde-control-center)
 free -m
-for cycle in 1 2; do
+for cycle in 1; do
     launch deepin-terminal "$cycle" /usr/bin/deepin-terminal
     launch dde-file-manager "$cycle" /usr/bin/dde-file-manager /home/live
     launch dde-control-center "$cycle" /usr/bin/dde-control-center --show

@@ -50,6 +50,9 @@ deepin-wallpapers
 deepin-gtk-theme
 deepin-icon-theme
 deepin-terminal
+deepin-installer-timezones
+spice-vdagent
+open-vm-tools-desktop
 fonts-dejavu-core
 fonts-noto-core
 pulseaudio

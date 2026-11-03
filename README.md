@@ -148,9 +148,13 @@ Xem [báo cáo rà soát build và gỡ gói](docs/build-removal-review.md) cho 
 
 ## Trạng thái và giới hạn kiểm thử
 
-Đây là **Live ISO thử nghiệm**, chưa có trình cài đặt vào ổ đĩa. Boot dùng
-`live-config`, user `live`, quyền sudo dành cho phiên live. Không dùng như một
-hệ thống đã cài hoặc để chứa dữ liệu nhạy cảm trước khi kiểm tra.
+Bản Live ISO tích hợp **deepin-installer** chính thức đã được điều chỉnh downstream:
+loại bỏ phụ thuộc `uos-license-content` (commercial) và `usec-boot-crypt`, gỡ plugin
+gợi ý cài ứng dụng thương mại (`InstallApplication`), bỏ sinh locale CJK/GBK ép buộc
+tại postinst, đồng thời bổ sung driver máy ảo (`spice-vdagent`, `open-vm-tools-desktop`)
+và cấu hình compositor nhẹ để loại bỏ hiện tượng trễ chuột/lag khi chạy qua phần mềm (llvmpipe).
+Người dùng có thể mở icon "Cài đặt Deepin Lite" trực tiếp từ Desktop/Launcher hoặc chọn
+mục "Deepin Lite (Install)" ngay từ menu GRUB. Boot dùng `live-config`, user `live`, quyền sudo.
 
 ISO có GRUB BIOS/UEFI; Secure Boot chưa được hỗ trợ. CI kiểm tra boot metadata,
 khởi động chính ISO qua cả BIOS và OVMF UEFI bằng QEMU TCG, đi qua GRUB và

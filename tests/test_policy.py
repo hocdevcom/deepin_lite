@@ -17,9 +17,13 @@ class PolicyTest(unittest.TestCase):
         for name in ["uos-ai:amd64", "deepin-sync-daemon", "com.qq.im", "linglong-bin", "fcitx5-module-cloudpinyin"]:
             with self.subTest(name=name):
                 self.assertTrue(policy.forbidden(name, patterns))
-        for name in ["libasyncns0", "systemd-dev", "systemd-timesyncd", "rsync", "dde-daemon", "deepin-terminal"]:
+        for name in ["libasyncns0", "systemd-dev", "systemd-timesyncd", "rsync", "dde-daemon", "deepin-terminal", "deepin-installer", "deepin-installer-timezones", "spice-vdagent", "open-vm-tools-desktop"]:
             with self.subTest(name=name):
                 self.assertFalse(policy.forbidden(name, patterns))
+
+    def test_configured_packages_pass_policy_validation(self):
+        result = subprocess.run([sys.executable, "scripts/policy.py", "validate"], cwd=ROOT, capture_output=True)
+        self.assertEqual(result.returncode, 0, result.stderr.decode("utf-8"))
 
     def test_manifest_audit_fails_closed(self):
         with tempfile.TemporaryDirectory() as tmp:

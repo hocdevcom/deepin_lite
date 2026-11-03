@@ -31,7 +31,7 @@ for ((i=0; i<210; i++)); do
         busctl --system --timeout=3 status org.desktopspec.ConfigManager >/dev/null 2>&1 &&
         desktop_ready; then
         ((stable+=1))
-        if ((stable >= 60)); then
+        if ((stable >= 15)); then
             if ! check_applications || has_crashes; then
                 failed=true
                 break

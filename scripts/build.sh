@@ -103,9 +103,15 @@ rm -f "$BUILDER/etc/dpkg/dpkg.cfg.d/01deepin-lite-prune"
 mount_chroot "$BUILDER"
 python3 scripts/prepare-sources.py "$BUILDER/build"
 chroot "$BUILDER" apt-get update
+builder_runtime_debs=()
+for deb in "${runtime_debs[@]}"; do
+    if [[ $deb != *deepin-installer* ]]; then
+        builder_runtime_debs+=("$deb")
+    fi
+done
 chroot "$BUILDER" apt-get install -y --no-install-recommends \
     build-essential devscripts equivs fakeroot ca-certificates dbus-x11 xvfb xauth locales \
-    deepin-desktop-base grub-common librsvg2-bin fonts-unifont bc x11-xserver-utils "${runtime_debs[@]}"
+    deepin-desktop-base grub-common librsvg2-bin fonts-unifont bc x11-xserver-utils "${builder_runtime_debs[@]}"
 install -Dm755 scripts/build-session.sh "$BUILDER/usr/local/lib/deepin-lite/build-session.sh"
 # Upstream desktop-base supplies /etc/os-version for tests. The runtime gets
 # these files from our rebuilt desktop-base DEB through dpkg, not manual copies.

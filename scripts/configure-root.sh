@@ -12,11 +12,37 @@ printf 'en_US.UTF-8 UTF-8\nvi_VN.UTF-8 UTF-8\n' > /etc/locale.gen
 locale-gen
 update-locale LANG=en_US.UTF-8
 ln -sf /usr/share/zoneinfo/Asia/Ho_Chi_Minh /etc/localtime
-mkdir -p /etc/lightdm/lightdm.conf.d /etc/skel/Desktop
+mkdir -p /etc/lightdm/lightdm.conf.d /etc/skel/Desktop /usr/share/applications
 cat > /etc/lightdm/lightdm.conf.d/50-deepin-lite.conf <<'EOF'
 [Seat:*]
 greeter-session=lightdm-gtk-greeter
 user-session=dde-x11
+EOF
+
+# Install deepin-installer desktop launcher for user session
+if [[ -f /usr/share/deepin-installer/configs/live-config/deepin-installer_deepin.desktop ]]; then
+    install -Dm755 /usr/share/deepin-installer/configs/live-config/deepin-installer_deepin.desktop /etc/skel/Desktop/deepin-installer.desktop
+    install -Dm755 /usr/share/deepin-installer/configs/live-config/deepin-installer_deepin.desktop /usr/share/applications/deepin-installer.desktop
+elif [[ -f /usr/share/deepin-installer/configs/live-config/deepin-installer.desktop ]]; then
+    install -Dm755 /usr/share/deepin-installer/configs/live-config/deepin-installer.desktop /etc/skel/Desktop/deepin-installer.desktop
+    install -Dm755 /usr/share/deepin-installer/configs/live-config/deepin-installer.desktop /usr/share/applications/deepin-installer.desktop
+fi
+
+# Performance profile: disable heavy window blur/effects on software rendering to eliminate click latency
+mkdir -p /usr/share/glib-2.0/schemas /etc/xdg
+cat > /usr/share/glib-2.0/schemas/99_deepin_lite_performance.gschema.override <<'EOF'
+[org.deepin.dde.appearance]
+window-effect=false
+EOF
+if command -v glib-compile-schemas >/dev/null 2>&1; then
+    glib-compile-schemas /usr/share/glib-2.0/schemas/
+fi
+
+cat > /etc/xdg/kwinrc <<'EOF'
+[Compositing]
+AnimationSpeed=0
+GLCore=false
+OpenGLIsUnsafe=false
 EOF
 # live-config creates the live user and grants sudo on boot.
 mkdir -p /etc/live/config.conf.d
