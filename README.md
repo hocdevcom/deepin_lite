@@ -15,6 +15,9 @@ metapackage `dde` / `deepin-desktop-environment` vì chúng kéo theo nhiều �
   từ source package native chính thức của cùng kho beige vì bản GitHub không
   tương ứng bản nhị phân đang dùng. Checksum hai source này đã đối chiếu với
   Sources.gz được xác thực qua chữ ký InRelease; provenance ghi trong lock.
+  Tương tự, build lại Appearance, Qt D-Bus factory, DTK Qt5/Qt6, API proxy và
+  tray loader từ đúng source package của kho để giữ ABI đang dùng. Tổng cộng
+  14 source package; Qt5/Qt6 dùng tên dự án riêng trong source lock.
   Đây **không phải** bản biên dịch toàn bộ Deepin từ nguồn.
 - Giữ dịch vụ xác thực cục bộ `deepin-authenticate` (LGPL), phụ thuộc của
   lock/session. DEB này được tải riêng từ kho chính thức, khóa phiên bản và
@@ -50,6 +53,8 @@ cloud sync, Deepin ID/UnionID, App Store, Linglong, WeChat/QQ, Baidu, WPS, Sogou
 Sau khi cài các gói tối thiểu, build purge cả gói và conffile trong danh sách,
 autoremove phụ thuộc thừa rồi xác nhận desktop bắt buộc vẫn được cài.
 Không dùng negative APT pins, D-Bus deny hay systemd mask để giả thay việc xóa.
+Trước purge, CI mô phỏng kế hoạch APT và từ chối nếu có gói desktop bắt buộc bị
+gỡ theo. `systemd-dev` được giữ vì systemd trong kho này cần nó khi chạy.
 
 Các tích hợp nhúng được xóa tại nguồn trong `scripts/source_cleanup.py`:
 
@@ -59,6 +64,12 @@ Các tích hợp nhúng được xóa tại nguồn trong `scripts/source_cleanu
 - **Control Center:** xóa UI cũ chứa UnionID/reset mật khẩu trực tuyến;
   xóa plugin Accounts/cloud sync, Deepin ID, Common Info, System Info và Update.
   Quản lý user Linux cục bộ vẫn còn qua CLI; các trang GUI nói trên không còn.
+- **Appearance và thư viện D-Bus:** xóa adapter/đăng ký cloud sync và định nghĩa
+  sinh binding AI, Deepin ID, cloud, App Store và Lastore.
+- **DTK Qt5/Qt6:** xóa mã gọi iFlytek, menu AI và backend nhập giọng nói;
+  giữ API công khai tối thiểu để các ứng dụng dùng thư viện không vỡ ABI.
+- **Lastore:** xóa backend khỏi phụ thuộc, module session, tải gói ngôn ngữ tự
+  động, proxy và tích hợp cập nhật của tray. Cập nhật hệ thống dùng APT.
 - **Lock/session UI:** xóa hàm tra cứu tài khoản cloud trong lock/greeter và
   loại toàn bộ reset-password-dialog trực tuyến khỏi nguồn/đóng gói.
 - **File Manager:** xóa plugin cho dde-dock cũ, giữ plugin dde-shell; xóa mã gọi cloud helper để hỏi vendor developer mode.
@@ -81,7 +92,8 @@ kiểm toán toàn diện trước khi build thành công và kiểm thử thự
 
 Giữ locale Anh/Việt, một theme Bloom, không browser/office/games/printer/AI models.
 Xóa cache; dùng path-exclude/path-include của dpkg để giảm tài liệu và locale
-ngay khi cài gói; giữ copyright/license và nén SquashFS XZ 1 MiB.
+ngay khi cài gói; bỏ tài liệu hướng dẫn ứng dụng, icon AI và cấu hình store
+đi kèm gói dùng chung; giữ copyright/license và nén SquashFS XZ 1 MiB.
 Không xóa driver/firmware một cách mù quáng. Bản hiện tại không bổ sung bộ firmware
 Wi-Fi proprietary lớn; một số phần cứng cần cài firmware sau.
 Không cam kết số GB hoặc “nhỏ nhất tuyệt đối” trước khi build và đo thực tế.
@@ -97,12 +109,12 @@ Không cam kết số GB hoặc “nhỏ nhất tuyệt đối” trước khi b
    `size-report.txt`, nguồn đã khóa, InRelease và log QEMU/build.
 
 PR kiểm tra cấu hình/scripts và áp dụng các sửa đổi lên nguồn đã khóa.
-Build gói chạy theo matrix 8 job độc lập, `fail-fast: false`: một gói lỗi không
-che lỗi của những gói phía sau. Job ISO chỉ bắt đầu khi cả 8 gói build/audit đạt.
+Build gói chạy theo matrix 14 job độc lập, `fail-fast: false`: một gói lỗi không
+che lỗi của những gói phía sau. Job ISO chỉ bắt đầu khi cả 14 gói build/audit đạt.
 Lệnh Linux tương ứng: `sudo bash scripts/build.sh source <tên-gói>` hoặc
 `sudo bash scripts/build.sh image` (với artifact đã tải vào `incoming/`).
 Workflow không cần PAT hay secrets.
-Quyền mặc định `contents: read`; không tự phát hành GitHub Release.
+Quyền `contents: read` và `actions: read`; không tự phát hành GitHub Release.
 Artifact ISO giữ 7 ngày, logs 14 ngày. Lần đầu có thể mất 1–3 giờ và cần đủ
 dung lượng trống cho hai chroot; nếu hosted runner hết đĩa, dùng runner lớn hơn.
 
