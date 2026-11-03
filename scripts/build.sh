@@ -87,6 +87,13 @@ mkdir -p "$ROOT/etc/apt/apt.conf.d"
 printf 'APT::Install-Recommends "false";\nAPT::Install-Suggests "false";\nAcquire::Languages "none";\n' \
     > "$ROOT/etc/apt/apt.conf.d/99deepin-lite"
 install -Dm644 config/dpkg-path-excludes "$ROOT/etc/dpkg/dpkg.cfg.d/01deepin-lite-prune"
+python3 scripts/fetch-runtime.py "$WORK/runtime"
+runtime_debs=()
+for deb in "$WORK/runtime"/*.deb; do
+    install -Dm644 "$deb" "$ROOT/runtime-debs/${deb##*/}"
+    runtime_debs+=("/runtime-debs/${deb##*/}")
+done
+cp config/required-runtime.json "$DIST/"
 
 if [[ $MODE != image ]]; then
 # Source build dependencies live in a separate chroot and never enter the ISO.
@@ -98,7 +105,7 @@ python3 scripts/prepare-sources.py "$BUILDER/build"
 chroot "$BUILDER" apt-get update
 chroot "$BUILDER" apt-get install -y --no-install-recommends \
     build-essential devscripts equivs fakeroot ca-certificates dbus-x11 xvfb xauth locales \
-    deepin-desktop-base grub-common librsvg2-bin fonts-unifont bc x11-xserver-utils
+    deepin-desktop-base grub-common librsvg2-bin fonts-unifont bc x11-xserver-utils "${runtime_debs[@]}"
 install -Dm755 scripts/build-session.sh "$BUILDER/usr/local/lib/deepin-lite/build-session.sh"
 # Upstream desktop-base supplies /etc/os-version for tests. The runtime gets
 # these files from our rebuilt desktop-base DEB through dpkg, not manual copies.
@@ -168,7 +175,7 @@ mapfile -t packages < <(sed -e 's/#.*//' -e '/^[[:space:]]*$/d' config/packages.
 # Install all together so the local API satisfies startdde without CJK fonts.
 local_debs=()
 for deb in "$ROOT"/local-debs/*.deb; do local_debs+=("/local-debs/${deb##*/}"); done
-chroot "$ROOT" apt-get install -y --no-install-recommends "${local_debs[@]}" "${packages[@]}"
+chroot "$ROOT" apt-get install -y --no-install-recommends "${runtime_debs[@]}" "${local_debs[@]}" "${packages[@]}"
 # Purge actual packages and conffiles; no negative pins or activation blocks.
 # If a mandatory dependency removes the desktop, the required-package audit fails.
 # shellcheck disable=SC2016
@@ -204,7 +211,9 @@ version=${kernel##*/vmlinuz-}
 cp "$kernel" "$ISO/live/vmlinuz"
 cp "$ROOT/boot/initrd.img-$version" "$ISO/live/initrd.img"
 cp config/grub.cfg "$ISO/boot/grub/grub.cfg"
-rm -rf "$ROOT/local-debs"
+mkdir -p "$DIST/runtime-debs"
+cp "$WORK/runtime"/*.deb "$DIST/runtime-debs/"
+rm -rf "$ROOT/local-debs" "$ROOT/runtime-debs"
 python3 scripts/image_cleanup.py "$ROOT" --report "$DIST/removal-audit.txt"
 rm -f "$ROOT/usr/sbin/policy-rc.d" "$ROOT/etc/resolv.conf"
 ln -s /run/NetworkManager/resolv.conf "$ROOT/etc/resolv.conf"
@@ -221,6 +230,6 @@ mksquashfs "$ROOT" "$ISO/live/filesystem.squashfs" -noappend -comp xz \
 grub-mkrescue -o "$DIST/deepin-lite-amd64.iso" "$ISO" -- -volid DEEPIN_LITE
 (
     cd "$DIST"
-    sha256sum deepin-lite-amd64.iso source-debs/*.deb sources/* > SHA256SUMS
+    sha256sum deepin-lite-amd64.iso source-debs/*.deb runtime-debs/*.deb sources/* > SHA256SUMS
 )
 echo "ISO built: $DIST/deepin-lite-amd64.iso"

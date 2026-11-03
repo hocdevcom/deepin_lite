@@ -2,8 +2,8 @@
 set -eu
 for ((i=0; i<210; i++)); do
     if id live >/dev/null 2>&1 && systemctl is-active --quiet NetworkManager lightdm &&
-        pgrep -u live -f '/(dde-shell|dshell)( |$)' >/dev/null &&
-        pgrep -u live -f '/dde-desktop( |$)' >/dev/null; then
+        { pgrep -u live -x dde-shell >/dev/null || pgrep -u live -x dshell >/dev/null; } &&
+        pgrep -u live -x dde-desktop >/dev/null; then
         echo DEEPIN_LITE_DESKTOP_READY
         exit 0
     fi

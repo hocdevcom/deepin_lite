@@ -1,0 +1,15 @@
+[
+  {
+    "package": "deepin-authenticate",
+    "version": "1:2.0.5",
+    "sha256": "c8d4649bec1e4308aabdb57b534f0b36d327f3707e80e98946fae3a87021e99b",
+    "url": "https://community-packages.deepin.com/beige/pool/commercial/d/deepin-authenticate/deepin-authenticate_2.0.5_amd64.deb",
+    "purpose": "Required local DDE authentication service; no optional commercial application repository enabled",
+    "license": "LGPL-3+",
+    "authenticated_index": {
+      "url": "https://community-packages.deepin.com/beige/dists/beige/commercial/binary-amd64/Packages.gz",
+      "sha256": "e8dd634c832c8c68e15cd2110f68e62717ab38c0450432114bc3ec6c897d66fc",
+      "inrelease_sha256": "e8b362eca8946dd23427ab65e6e7bfb5066b8e0c348948178b55c8dcf053d5cf"
+    }
+  }
+]

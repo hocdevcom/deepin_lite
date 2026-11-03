@@ -111,13 +111,14 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           PACKAGE_RUN_ID: ${{ inputs.package_run_id }}
         run: python3 scripts/verify-reuse.py
-      - uses: actions/download-artifact@v4
-        with:
-          pattern: deepin-package-*
-          path: incoming
-          merge-multiple: true
-          run-id: ${{ inputs.package_run_id || github.run_id }}
-          github-token: ${{ github.token }}
+      - name: Collect audited package artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PACKAGE_RUN_ID: ${{ inputs.package_run_id }}
+        run: python3 scripts/download-packages.py
+      - name: Verify reused source contents
+        if: inputs.package_run_id != ''
+        run: python3 scripts/verify-source-artifacts.py | tee source-reuse-audit.txt
       - name: Assemble audited packages into live ISO
         run: |
           set -o pipefail
@@ -152,6 +153,7 @@ jobs:
             dist/SHA256SUMS
             dist/source-debs/
             dist/sources/
+            dist/runtime-debs/
           compression-level: 0
           retention-days: 7
           if-no-files-found: error
@@ -162,6 +164,8 @@ jobs:
           name: deepin-lite-reports-${{ github.run_number }}
           path: |
             build.log
+            package-provenance.json
+            source-reuse-audit.txt
             dist/*.txt
             dist/*.tsv
             dist/*.json
