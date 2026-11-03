@@ -172,5 +172,6 @@ jobs:
             dist/*.tsv
             dist/*.json
             dist/*.log
+            dist/desktop-*.png
             dist/upstream.InRelease
           retention-days: 14

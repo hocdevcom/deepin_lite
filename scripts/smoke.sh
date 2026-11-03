@@ -26,9 +26,11 @@ for firmware in bios uefi; do
               -drive 'if=pflash,format=raw,file=.work/OVMF_VARS-test.fd')
     fi
     log="dist/qemu-$firmware.log"
+    socket="$BASE/.work/qmp-$firmware.sock"
     timeout 600 qemu-system-x86_64 -accel tcg -m 4096 -smp 2 -vga std \
         "${args[@]}" -cdrom dist/deepin-lite-amd64.iso -boot d \
-        -display none -serial stdio -monitor none -no-reboot > "$log" 2>&1 &
+        -display none -serial stdio -monitor none -no-reboot \
+        -qmp "unix:$socket,server=on,wait=off" > "$log" 2>&1 &
     vm=$!
     ready=false
     for ((i=0; i<290; i++)); do
@@ -36,6 +38,7 @@ for firmware in bios uefi; do
         if grep -q DEEPIN_LITE_DESKTOP_FAILED "$log" || ! kill -0 "$vm" 2>/dev/null; then break; fi
         sleep 2
     done
+    python3 scripts/vm-screenshot.py "$socket" "dist/desktop-$firmware.png" || true
     stop_vm
     if [[ $ready != true ]]; then
         tail -n 160 "$log"
