@@ -153,9 +153,19 @@ jobs:
           path: |
             dist/deepin-lite-amd64.iso
             dist/SHA256SUMS
+          compression-level: 0
+          retention-days: 7
+          if-no-files-found: error
+      - name: Upload corresponding sources and packages
+        if: success()
+        uses: actions/upload-artifact@v7
+        with:
+          name: deepin-lite-sources-and-debs-${{ github.run_number }}
+          path: |
             dist/source-debs/
             dist/sources/
             dist/runtime-debs/
+            dist/SOURCE-SHA256SUMS
           compression-level: 0
           retention-days: 7
           if-no-files-found: error

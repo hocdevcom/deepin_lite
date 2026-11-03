@@ -223,6 +223,7 @@ mksquashfs "$ROOT" "$ISO/live/filesystem.squashfs" -noappend -comp xz \
 grub-mkrescue -o "$DIST/deepin-lite-amd64.iso" "$ISO" -- -volid DEEPIN_LITE
 (
     cd "$DIST"
-    sha256sum deepin-lite-amd64.iso source-debs/*.deb runtime-debs/*.deb sources/* > SHA256SUMS
+    sha256sum deepin-lite-amd64.iso > SHA256SUMS
+    sha256sum source-debs/*.deb runtime-debs/*.deb sources/* > SOURCE-SHA256SUMS
 )
 echo "ISO built: $DIST/deepin-lite-amd64.iso"

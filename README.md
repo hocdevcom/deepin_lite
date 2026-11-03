@@ -103,8 +103,10 @@ Không cam kết số GB hoặc “nhỏ nhất tuyệt đối” trước khi b
 1. Đưa toàn bộ repository này lên GitHub, nhánh `main`.
 2. Mở **Actions → Deepin Lite ISO → Run workflow**. Push vào main cũng tự build.
 3. Khi source build, audit và kiểm tra live desktop đều thành công, tải artifact
-   `deepin-lite-amd64-<run>`: ISO, SHA256SUMS, các gói DEB đã biên dịch và
-   source package tương ứng trong `sources/`.
+   `deepin-lite-amd64-<run>`: chỉ ISO và `SHA256SUMS`.
+   Artifact riêng `deepin-lite-sources-and-debs-<run>` chứa `sources/`,
+   `source-debs/`, `runtime-debs/` và `SOURCE-SHA256SUMS`; chỉ cần tải khi muốn
+   xem mã nguồn hoặc sử dụng các gói DEB.
 4. Artifact reports có `packages.tsv`, `applications.txt`, `services.txt`,
    `size-report.txt`, nguồn đã khóa, InRelease và log QEMU/build.
 
