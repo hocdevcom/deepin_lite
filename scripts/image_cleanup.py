@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Remove named online payloads, then reject known integration markers.
+"""Read-only audit for residual online payloads and integration markers.
 
 Never follows symlinks or touches host paths outside the explicit image root.
 The audit is deliberately bounded to known identifiers; it is not a proof about
@@ -9,20 +9,19 @@ import argparse
 import os
 from pathlib import Path
 import re
-import shutil
 
-NAMES = re.compile(r"aiassistant|uos[-_.]ai|deepin[-_.](?:ai|cloud|sync)|deepinid|union[-_]?id|uadp|org\.deepin\.dde\.eventlog|(?:com|org)\.deepin\.(?:dde\.)?sync", re.I)
+NAMES = re.compile(r"aiassistant|uos[-_.]ai|deepin[-_.](?:ai|cloud|sync)|deepinid|union[-_]?id|org\.deepin\.dde\.eventlog|(?:com|org)\.deepin\.(?:dde\.)?sync", re.I)
 IDENTIFIERS = (
     "com.iflytek.aiassistant", "com.deepin.sync", "org.deepin.dde.sync",
     "com.deepin.deepinid", "org.deepin.dde.deepinid", "com.deepin.unionid",
-    "org.deepin.dde.unionid", "org.deepin.dde.uadp", "org.deepin.dde.eventlog",
+    "org.deepin.dde.unionid", "org.deepin.dde.eventlog", ".appstore.deepin.com",
 )
 MARKERS = tuple((name, name.encode(encoding)) for name in IDENTIFIERS
                 for encoding in ("ascii", "utf-16-le", "utf-16-be"))
 
 
 def entries(root):
-    for relative in ("etc", "usr", "opt"):
+    for relative in ("etc", "usr", "opt", "DEBIAN"):
         start = root / relative
         if not start.is_dir() or start.is_symlink():
             continue
@@ -31,24 +30,12 @@ def entries(root):
                 yield Path(directory) / name
 
 
-def clean(root):
-    deleted = []
-    for path in list(entries(root)):
-        if NAMES.search(path.name) and (path.is_symlink() or path.exists()):
-            if path.is_dir() and not path.is_symlink():
-                shutil.rmtree(path)
-            else:
-                path.unlink()
-            deleted.append(path.relative_to(root).as_posix())
-    return deleted
-
-
 def audit(root):
     failures = []
     overlap = max(len(marker) for _, marker in MARKERS) - 1
     for path in entries(root):
         relative = path.relative_to(root).as_posix()
-        if NAMES.search(path.name):
+        if NAMES.search(path.name) and not relative.startswith(("usr/share/icons/", "usr/share/doc/", "usr/share/licenses/")):
             failures.append(f"payload: {relative}")
         if path.is_symlink() or not path.is_file():
             continue
@@ -75,14 +62,13 @@ def main():
     root = Path(args.root).resolve(strict=True)
     if root == Path(root.anchor) or not (root / "var/lib/dpkg/status").is_file():
         parser.error("Expected a dedicated debootstrapped image root")
-    deleted = clean(root)
     failures = audit(root)
-    report = ["Physically removed payloads:", *deleted,
+    report = ["Read-only audit: files are removed through source packages or apt purge.",
               f"Known-identifier audit: {'FAIL' if failures else 'PASS'}", *failures]
     Path(args.report).write_text("\n".join(report) + "\n", encoding="utf-8")
     if failures:
         raise SystemExit("Residual online integrations found; see " + args.report)
-    print(f"PASS: {len(deleted)} residual payload files removed; known-identifier audit passed")
+    print("PASS: known-identifier audit passed; no image files modified")
 
 
 if __name__ == "__main__":

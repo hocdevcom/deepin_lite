@@ -71,42 +71,38 @@ printf 'deb [signed-by=/usr/share/keyrings/deepin-lite-archive.gpg] %s %s %s\n' 
 mkdir -p "$ROOT/etc/apt/apt.conf.d"
 printf 'APT::Install-Recommends "false";\nAPT::Install-Suggests "false";\nAcquire::Languages "none";\n' \
     > "$ROOT/etc/apt/apt.conf.d/99deepin-lite"
+install -Dm644 config/dpkg-path-excludes "$ROOT/etc/dpkg/dpkg.cfg.d/01deepin-lite-prune"
 
 # Source build dependencies live in a separate chroot and never enter the ISO.
 cp -a --reflink=auto "$ROOT" "$BUILDER"
+# The builder needs full documentation/locale fixtures for upstream tests.
+rm -f "$BUILDER/etc/dpkg/dpkg.cfg.d/01deepin-lite-prune"
 mount_chroot "$BUILDER"
 python3 scripts/prepare-sources.py "$BUILDER/build"
 chroot "$BUILDER" apt-get update
 chroot "$BUILDER" apt-get install -y --no-install-recommends \
-    build-essential devscripts equivs ca-certificates dbus-x11 xvfb xauth locales \
+    build-essential devscripts equivs fakeroot ca-certificates dbus-x11 xvfb xauth locales \
     deepin-desktop-base grub-common librsvg2-bin fonts-unifont
-# adjust-grub-theme reads /etc/os-version even in the fallback-theme test.
-# Obtain genuine identity metadata from signed Deepin packages. Only copy the
-# small metadata/license files to the image, not desktop-base's font dependency tree.
-for identity in os-version deepin-version; do
-    [[ -s "$BUILDER/etc/$identity" ]] || { echo "Missing Deepin identity: $identity" >&2; exit 1; }
-    cp -L "$BUILDER/etc/$identity" "$ROOT/etc/$identity"
-done
-install -Dm644 "$BUILDER/usr/share/doc/deepin-desktop-base/copyright" \
-    "$ROOT/usr/share/doc/deepin-lite-base/copyright"
+# Upstream desktop-base supplies /etc/os-version for tests. The runtime gets
+# these files from our rebuilt desktop-base DEB through dpkg, not manual copies.
 # Desktop tests need a private session bus and virtual X display. These test
 # dependencies stay in the builder chroot and are not added to the image.
 chroot "$BUILDER" dbus-uuidgen --ensure=/etc/machine-id
-for project in dde-api dde-daemon dde-session dde-file-manager dde-control-center; do
+chroot "$BUILDER" useradd --create-home --shell /bin/bash builder
+chroot "$BUILDER" chown builder:builder /build
+for project in deepin-desktop-base dde-api dde-daemon dde-session dde-file-manager dde-control-center; do
     # shellcheck disable=SC2016 # Expanded by the shell inside the builder.
     chroot "$BUILDER" /bin/bash -euc '
         mkdir -p "/build/deps-$1"
         cd "/build/deps-$1"
         mk-build-deps --install --remove --tool "apt-get -y --no-install-recommends" "/build/$1/debian/control"
         cd "/build/$1"
-        if [ "$1" = dde-daemon ]; then
-            find . -name "*.go" -print0 | xargs -0 gofmt -w
-        fi
-        export XDG_RUNTIME_DIR=/run/deepin-lite-build
-        install -d -m 700 "$XDG_RUNTIME_DIR"
-        dbus-run-session -- xvfb-run --auto-servernum \
+        chown -R builder:builder "/build/$1"
+        install -d -m 700 -o builder -g builder /run/deepin-lite-build
+        runuser --user builder -- env HOME=/home/builder XDG_RUNTIME_DIR=/run/deepin-lite-build \
+            dbus-run-session -- xvfb-run --auto-servernum \
             --server-args="-screen 0 1280x720x24 -nolisten tcp" \
-            dpkg-buildpackage --build=full --no-sign -j2
+            dpkg-buildpackage -rfakeroot --build=full --no-sign -j2
     ' -- "$project" 2>&1 | tee "$DIST/source-build-$project.log"
 done
 mkdir "$ROOT/local-debs"
@@ -120,6 +116,7 @@ for deb in pathlib.Path(sys.argv[1]).glob('*.deb'):
     if not forbidden(package,patterns):
         shutil.copy2(deb,sys.argv[2])
 PY
+python3 scripts/verify-debs.py "$ROOT/local-debs" --report "$DIST/deb-audit.txt"
 mkdir -p "$DIST/source-debs"
 cp "$ROOT"/local-debs/*.deb "$DIST/source-debs/"
 mkdir -p "$DIST/sources"
@@ -132,7 +129,9 @@ import pathlib,subprocess,sys
 names=[subprocess.check_output(['dpkg-deb','-f',str(p),'Package'],text=True).strip()
        for p in sorted(pathlib.Path(sys.argv[1]).glob('*.deb'))]
 if not names: raise SystemExit('No rebuilt runtime packages found')
-print('Package: '+' '.join(names)+'\nPin: version *+lite2\nPin-Priority: 1001\n')
+import json
+revision=json.load(open('config/upstream.lock.json'))['local_revision']
+print('Package: '+' '.join(names)+'\nPin: version *+'+revision+'\nPin-Priority: 1001\n')
 PY
 mount_chroot "$ROOT"
 chroot "$ROOT" apt-get update
@@ -152,6 +151,7 @@ if ((${#purge[@]})); then
 fi
 cp "$WORK/purge.txt" "$DIST/purged-packages.txt"
 chroot "$ROOT" apt-get check
+chroot "$ROOT" dpkg --audit
 install -m755 scripts/configure-root.sh "$ROOT/tmp/configure-root.sh"
 install -Dm755 scripts/live-smoke.sh "$ROOT/usr/local/lib/deepin-lite/live-smoke.sh"
 install -Dm644 config/deepin-lite-smoke.service "$ROOT/etc/systemd/system/deepin-lite-smoke.service"
@@ -180,6 +180,12 @@ python3 scripts/image_cleanup.py "$ROOT" --report "$DIST/removal-audit.txt"
 rm -f "$ROOT/usr/sbin/policy-rc.d" "$ROOT/etc/resolv.conf"
 ln -s /run/NetworkManager/resolv.conf "$ROOT/etc/resolv.conf"
 cleanup
+for directory in dev proc sys run; do
+    if mountpoint -q "$ROOT/$directory"; then
+        echo "Refusing to pack a mounted runtime directory: $ROOT/$directory" >&2
+        exit 1
+    fi
+done
 printf '%s\n' "$(du -sx --block-size=1 "$ROOT" | cut -f1)" > "$ISO/live/filesystem.size"
 mksquashfs "$ROOT" "$ISO/live/filesystem.squashfs" -noappend -comp xz \
     -b 1M -Xbcj x86 -processors 2 -mem 2G -no-progress

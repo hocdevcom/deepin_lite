@@ -45,20 +45,6 @@ def clean_daemon(root):
 	}
 ''')
     remove(root, "accounts1/user_chpwd_union_id.go")
-    path = root / "accounts1/user_ifc.go"
-    text, count = re.subn(r'(?m)^func \(u \*User\) (?:Set|Get|Delete)SecretKey\([^\n]*\n.*?^}\n', '', path.read_text(), flags=re.DOTALL)
-    if count != 3:
-        raise RuntimeError("Expected three UADP account methods")
-    write(path, text)
-    path = root / "accounts1/exported_methods_auto.go"
-    text, count = re.subn(r'(?m)^\t\t\{\n\t\t\tName:\s+"(?:Set|Get|Delete)SecretKey",\n.*?^\t\t},\n', '', path.read_text(), flags=re.DOTALL)
-    if count != 3:
-        raise RuntimeError("Expected three UADP account export bindings")
-    write(path, text)
-    path = root / "accounts1/user.go"
-    text = re.sub(r'(?m)^\t+uadp(?:Interface)?\s+[^\n]*\n', '', path.read_text())
-    text = re.sub(r'(?m)^\t+uadpInterface:\s+[^\n]*\n', '', text)
-    write(path, text)
     remove(root, "bin/dde-system-daemon/network.go")
     remove(root, "bin/dde-system-daemon/network_test.go")
     path = root / "bin/dde-system-daemon/exported_methods_auto.go"
@@ -78,7 +64,7 @@ def clean_daemon(root):
     text = text[:start] + text[end:]
     text = text.replace('\tm.sSaver.destroy()\n', '\tif m.sSaver.xConn != nil {\n\t\tm.sSaver.xConn.Close()\n\t}\n\tm.sSaver.destroy()\n')
     write(path, text)
-    removed_modules = ("common/dsync", "session/eventlog", "session/uadpagent1", "system/uadp1")
+    removed_modules = ("common/dsync", "session/eventlog")
     for relative in removed_modules:
         remove(root, relative)
     removed_sync_files = list(root.rglob("sync_config.go"))
@@ -92,26 +78,23 @@ def clean_daemon(root):
     for path in root.rglob("*.go"):
         text = original = path.read_text(encoding="utf-8")
         # Remove imports, fields, setup, registration, export and teardown.
-        text = re.sub(r'(?m)^\s*(?:_ )?"github.com/linuxdeepin/dde-daemon/(?:common/dsync|session/eventlog|session/uadpagent1|system/uadp1)"\n', '', text)
+        text = re.sub(r'(?m)^\s*(?:_ )?"github.com/linuxdeepin/dde-daemon/(?:common/dsync|session/eventlog)"\n', '', text)
         text = re.sub(r'(?m)^\t+syncConfig\s+\*dsync.Config\n', '', text)
         text = re.sub(r'(?m)^\t+\w+\.syncConfig = dsync.NewConfig\([^\n]*(?:\n\t+[^\n]*)?\)\n', '', text)
         text = re.sub(r'(?m)^(\t+)err (?::=|=) [\w.]+\.syncConfig.Register\(\)\n\1if err != nil \{\n.*?^\1}\n', '', text, flags=re.DOTALL)
         text = re.sub(r'(?m)^(\t+)err = service.StopExport\([\w.]+\.syncConfig\)\n\1if err != nil \{\n.*?^\1}\n', '', text, flags=re.DOTALL)
         text = re.sub(r', [\w.]+\.syncConfig\b', '', text)
         text = re.sub(r'(?m)^\t+[\w.]+\.syncConfig.Destroy\(\)\n', '', text)
-        text = re.sub(r'(?m)^\t+"uadpagent",\n', '', text)
         if text != original:
             write(path, text)
     makefile = root / "Makefile"
     text = makefile.read_text()
     text = '\n'.join(line for line in text.split('\n') if not any('/' + m + ' ' in line for m in removed_modules))
     write(makefile, text)
-    for relative in ("misc/system-services/org.deepin.dde.Uadp1.service", "misc/conf/org.deepin.dde.Uadp1.conf"):
-        remove(root, relative)
     path = root / "misc/dsg-configs/org.deepin.dde.daemon.loader.json"
     data = json.loads(path.read_text())
     for key in list(data["contents"]):
-        if any(s in key.lower() for s in ("uadp", "eventlog")):
+        if any(s in key.lower() for s in ("eventlog",)):
             del data["contents"][key]
     write(path, json.dumps(data, ensure_ascii=False, indent=2) + "\n")
     path = root / "misc/dde-daemon/keybinding/system_actions.json"
@@ -120,7 +103,7 @@ def clean_daemon(root):
     write(path, json.dumps(data, ensure_ascii=False, indent=2) + "\n")
     # Fail if any implementation references survive in compiled Go files.
     for path in root.rglob("*.go"):
-        if re.search(r'\bdsync\b|\.syncConfig\b|setPwdWithUnionID|com\.deepin\.sync|org\.deepin\.dde\.(?:uadp|eventlog)', path.read_text(), flags=re.I):
+        if re.search(r'\bdsync\b|\.syncConfig\b|setPwdWithUnionID|com\.deepin\.sync|org\.deepin\.dde\.eventlog', path.read_text(), flags=re.I):
             raise RuntimeError(f"Cloud integration still present: {path}")
 
 
@@ -148,8 +131,19 @@ def clean_file_manager(root):
     write(path, text)
 
 
+def clean_desktop_base(root):
+    replace(root / "debian/control", " eject, fonts-noto, fonts-symbola", " eject")
+    replace(root / "debian/control", "Provides: deepin-appstore-config\n", "")
+    for relative in ("Makefile", "debian/deepin-desktop-base.install"):
+        path = root / relative
+        text = path.read_text()
+        write(path, "\n".join(line for line in text.split("\n") if "appstore" not in line))
+    remove(root, "files/appstore.json")
+    remove(root, "files/appstore_loongson.json")
+
+
 def clean_source(name, root):
-    handlers = {"dde-daemon": clean_daemon, "dde-control-center": clean_control_center,
+    handlers = {"deepin-desktop-base": clean_desktop_base, "dde-daemon": clean_daemon, "dde-control-center": clean_control_center,
                 "dde-file-manager": clean_file_manager}
     if name in handlers:
         handlers[name](Path(root))

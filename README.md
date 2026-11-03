@@ -8,19 +8,21 @@ metapackage `dde` / `deepin-desktop-environment` vì chúng kéo theo nhiều �
 
 - Nền hệ thống: gói nhị phân có chữ ký từ kho chính thức Deepin `beige`, chỉ
   `main` và `community`; không thêm kho `commercial`, App Store hay Linglong.
-- Biên dịch **dde-api**, **dde-session**, **dde-daemon**, **dde-file-manager** và
+- Biên dịch **deepin-desktop-base**, **dde-api**, **dde-session**, **dde-daemon**, **dde-file-manager** và
   **dde-control-center** từ
   [linuxdeepin](https://github.com/linuxdeepin), khóa commit và SHA256 trong
   `config/upstream.lock.json`. Đây **không phải** bản biên dịch toàn bộ Deepin từ nguồn.
 - Sửa packaging của dde-api để bỏ phụ thuộc bắt buộc vào font CJK/Unifont.
   Không giả lập gói phụ thuộc, không dùng `--force-depends`.
-- Các build dependency nằm trong chroot riêng, không đưa vào ISO.
+- Build dependency nằm trong chroot riêng; build chạy dưới user thường với
+  fakeroot và có changelog downstream riêng. Không đưa build dependency vào ISO.
 - Test khi build gói có session D-Bus riêng và màn hình Xvfb; `dbus-x11`, Xvfb,
   xauth chỉ cài trong builder. Không dùng `nocheck` để bỏ qua test thất bại.
   Log từng gói nằm trong `source-build-<tên-gói>.log` ở artifact reports.
 - Builder cài `deepin-desktop-base` để test đọc được `/etc/os-version`, cùng
-  `grub-common`, `librsvg2-bin` và Unifont cho test theme. ISO chỉ nhận hai file
-  nhận diện OS và copyright từ desktop-base; không nhận bộ font phụ thuộc đó.
+  `grub-common`, `librsvg2-bin` và Unifont cho test theme. ISO cài DEB desktop-base
+  đã build lại, bỏ phụ thuộc font thừa và App Store config; giữ postinst và
+  update-alternatives của upstream để dpkg quản lý metadata hệ điều hành.
 - Suite `beige` là nhánh kho đã chọn để dựng hệ thống mutable bằng APT;
   dự án không tuyên bố tương đương ISO immutable Deepin 25 chính thức.
 
@@ -36,7 +38,7 @@ Không dùng negative APT pins, D-Bus deny hay systemd mask để giả thay vi�
 Các tích hợp nhúng được xóa tại nguồn trong `scripts/source_cleanup.py`:
 
 - **dde-daemon:** xóa bảy adapter cloud sync, thư viện dsync, API xuất/nhập
-  cấu hình mạng cho cloud, đổi mật khẩu qua UnionID, module UADP/EventLog
+  cấu hình mạng cho cloud, đổi mật khẩu qua UnionID và module EventLog
   và các action bàn phím gọi iFlytek AI.
 - **Control Center:** xóa UI cũ chứa UnionID/reset mật khẩu trực tuyến;
   xóa plugin Accounts/cloud sync, Deepin ID, Common Info, System Info và Update.
@@ -44,11 +46,15 @@ Các tích hợp nhúng được xóa tại nguồn trong `scripts/source_cleanu
 - **File Manager:** xóa mã gọi cloud helper để hỏi vendor developer mode.
   Chế độ vendor này không được cung cấp; quản lý tệp cục bộ vẫn được giữ.
 
-`scripts/image_cleanup.py` xóa file/thư mục payload mang tên tích hợp đã biết,
-rồi quét cả binary và cấu hình cho các định danh D-Bus AI/cloud/ID/UADP/EventLog,
+`scripts/verify-debs.py` kiểm tra payload và maintainer script của từng DEB.
+`scripts/image_cleanup.py` chỉ đọc image, quét cả binary và cấu hình cho
+các định danh D-Bus AI/cloud/ID/EventLog,
 kể cả chuỗi UTF-16. Nếu còn dấu vết thực thi đã biết, build thất bại thay vì
 che bằng quy tắc chặn. Báo cáo nằm trong `removal-audit.txt` và
-`purged-packages.txt`. Giấy phép/copyright được giữ nguyên.
+`purged-packages.txt` và `deb-audit.txt`. Nếu còn code trong gói lõi, phải sửa
+nguồn và build lại; không tự xóa file thuộc gói sau khi cài. UADP cục bộ được giữ
+vì upstream dùng nó để mã hóa/lưu khóa qua Secret Service; nó không tự động là
+cloud/AI chỉ vì được Deepin phát triển. Giấy phép/copyright được giữ nguyên.
 
 “Bỏ app China” ở đây là bỏ các ứng dụng/dịch vụ tùy chọn trên và tích hợp đã xác
 định; giữ lõi giao diện DDE. Kiểm tra dựa trên định danh đã biết không chứng minh
@@ -56,7 +62,8 @@ che bằng quy tắc chặn. Báo cáo nằm trong `removal-audit.txt` và
 kiểm toán toàn diện trước khi build thành công và kiểm thử thực tế.
 
 Giữ locale Anh/Việt, một theme Bloom, không browser/office/games/printer/AI models.
-Xóa cache, tài liệu phụ, bản dịch dư; giữ copyright/license và nén SquashFS XZ 1 MiB.
+Xóa cache; dùng path-exclude/path-include của dpkg để giảm tài liệu và locale
+ngay khi cài gói; giữ copyright/license và nén SquashFS XZ 1 MiB.
 Không xóa driver/firmware một cách mù quáng. Bản hiện tại không bổ sung bộ firmware
 Wi-Fi proprietary lớn; một số phần cứng cần cài firmware sau.
 Không cam kết số GB hoặc “nhỏ nhất tuyệt đối” trước khi build và đo thực tế.
@@ -71,7 +78,7 @@ Không cam kết số GB hoặc “nhỏ nhất tuyệt đối” trước khi b
 4. Artifact reports có `packages.tsv`, `applications.txt`, `services.txt`,
    `size-report.txt`, nguồn đã khóa, InRelease và log QEMU/build.
 
-PR chỉ kiểm tra cấu hình/scripts. Workflow không cần PAT hay secrets.
+PR kiểm tra cấu hình/scripts và áp dụng các sửa đổi lên nguồn đã khóa. Workflow không cần PAT hay secrets.
 Quyền mặc định `contents: read`; không tự phát hành GitHub Release.
 Artifact ISO giữ 7 ngày, logs 14 ngày. Lần đầu có thể mất 1–3 giờ và cần đủ
 dung lượng trống cho hai chroot; nếu hosted runner hết đĩa, dùng runner lớn hơn.
@@ -91,8 +98,11 @@ Chỉ chạy build trong VM/runner chuyên dụng vì cần root và chroot moun
 APT kiểm tra chữ ký với keyring upstream được khóa checksum, không dùng
 `trusted=yes`, `--allow-unauthenticated` hoặc `--no-check-gpg`.
 Nguồn GitHub đã khóa nhưng kho APT vẫn biến đổi: manifest/InRelease được lưu để
-truy vết, chưa bảo đảm tái lập bit-for-bit. Các gói tự build được pin `+lite2`;
+truy vết, chưa bảo đảm tái lập bit-for-bit. Các gói tự build được pin `+lite3`;
 muốn cập nhật chúng cần cập nhật source lock và build lại.
+
+Xem [báo cáo rà soát build và gỡ gói](docs/build-removal-review.md) cho phạm vi
+đối chiếu upstream và các bước còn chưa kiểm chứng.
 
 ## Trạng thái và giới hạn kiểm thử
 

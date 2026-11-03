@@ -7,6 +7,8 @@ import re
 import sys
 import tarfile
 import urllib.request
+from datetime import datetime, timezone
+from email.utils import format_datetime
 from source_cleanup import clean_source
 
 base = Path(__file__).resolve().parent.parent
@@ -40,9 +42,17 @@ for source in lock["sources"]:
             if count != 1:
                 raise SystemExit(f"Packaging changed; expected one {font} dependency")
         control.write_text(text)
-    # Local version ensures APT chooses this patched build over upstream.
+    # A downstream upload gets its own changelog entry. Preserve the upstream
+    # maintainer's version and history rather than rewriting their entry.
     changelog = dest / "debian/changelog"
     text = changelog.read_text()
-    text = re.sub(r"\(([^)]+)\)", lambda m: "(" + m[1] + "+lite2)", text, count=1)
-    changelog.write_text(text)
+    first = re.match(r"(\S+) \(([^)]+)\)", text)
+    if not first:
+        raise SystemExit(f"Invalid upstream changelog: {name}")
+    version = first[2] + "+" + lock["local_revision"]
+    date = format_datetime(datetime.now(timezone.utc))
+    entry = (f"{first[1]} ({version}) unstable; urgency=medium\n\n"
+             "  * Downstream minimal build; remove documented optional online integrations.\n\n"
+             f" -- Deepin Lite Builder <builder@localhost>  {date}\n\n")
+    changelog.write_text(entry + text, encoding="utf-8", newline="\n")
     print(f"Prepared {name} @ {source['commit']}")

@@ -18,6 +18,13 @@
   },
   "sources": [
     {
+      "repository": "https://github.com/linuxdeepin/deepin-desktop-base",
+      "commit": "30a38747698d35dfd981f93b838028f94c82b013",
+      "tag": "2024.07.26",
+      "url": "https://codeload.github.com/linuxdeepin/deepin-desktop-base/tar.gz/30a38747698d35dfd981f93b838028f94c82b013",
+      "sha256": "f2b4ea244989235e0fb8c499e632c9d483ab4f7a94f917fb994fe8d218dae3ef"
+    },
+    {
       "repository": "https://github.com/linuxdeepin/dde-api",
       "commit": "c675f780d394712ca38479c68022619ad0101ab3",
       "tag": "6.0.13",
@@ -52,5 +59,6 @@
       "url": "https://codeload.github.com/linuxdeepin/dde-control-center/tar.gz/e1510629ac4794508ce5e4a6a319c561cb9ed521",
       "sha256": "656d2d812b8d298dc64fe8793d0987382b24bc503253b3f6ce88f9b768a3c189"
     }
-  ]
+  ],
+  "local_revision": "lite3"
 }

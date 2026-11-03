@@ -1,4 +1,5 @@
 # Desktop essentials only. Dependencies are resolved by signed Deepin APT.
+deepin-desktop-base
 linux-image-deepin-amd64
 initramfs-tools
 live-boot

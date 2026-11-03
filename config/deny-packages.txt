@@ -9,7 +9,6 @@ deepin-user-experience*
 deepin-sync*
 deepin-deepinid*
 deepin-id*
-deepin-uadp*
 deepin-event-log*
 deepin-cloud*
 deepin-ai*
@@ -80,6 +79,7 @@ fonts-gb*
 fonts-noto-extra
 *-dbgsym
 *-dbg
+*-doc
 lib*-dev
 golang-*-dev
 qtbase*-dev

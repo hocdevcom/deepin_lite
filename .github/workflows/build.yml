@@ -33,7 +33,7 @@ jobs:
       - name: Verify source removal against locked upstream revisions
         run: |
           python3 scripts/prepare-sources.py "$RUNNER_TEMP/deepin-lite-sources"
-          find "$RUNNER_TEMP/deepin-lite-sources/dde-daemon" -name '*.go' -print0 | xargs -0 gofmt -w
+          find "$RUNNER_TEMP/deepin-lite-sources/dde-daemon" -name '*.go' -print0 | xargs -0 gofmt -l
   build:
     if: github.event_name != 'pull_request'
     needs: validate

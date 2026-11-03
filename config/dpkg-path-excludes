@@ -1,0 +1,12 @@
+# Supported dpkg installation filters; keep license/copyright and en/vi locales.
+path-exclude=/usr/share/man/*
+path-exclude=/usr/share/info/*
+path-exclude=/usr/share/gtk-doc/*
+path-exclude=/usr/share/doc/*
+path-include=/usr/share/doc/*/copyright
+path-include=/usr/share/doc/*/*LICENSE*
+path-include=/usr/share/doc/*/*COPYING*
+path-include=/usr/share/doc/*/*license*
+path-exclude=/usr/share/locale/*
+path-include=/usr/share/locale/en*
+path-include=/usr/share/locale/vi*

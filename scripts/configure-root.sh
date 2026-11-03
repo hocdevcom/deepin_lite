@@ -37,12 +37,7 @@ Acquire::Languages "none";
 EOF
 apt-get clean
 rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/* /tmp/* /var/tmp/*
-# Retain licenses, copyright and configuration files.
-find /usr/share/doc -type f ! -name copyright ! -iname '*license*' ! -iname '*copying*' -delete
-rm -rf /usr/share/man /usr/share/info /usr/share/gtk-doc
-if [[ -d /usr/share/locale ]]; then
-    find /usr/share/locale -mindepth 1 -maxdepth 1 -type d ! -name en ! -name en_US ! -name vi ! -name vi_VN -exec rm -rf -- {} +
-fi
+# Documentation/locale pruning is handled by dpkg path filters at install time.
 find /var/log -type f -exec truncate -s 0 {} +
 rm -f /etc/machine-id /var/lib/dbus/machine-id /etc/ssh/ssh_host_*
 touch /etc/machine-id
