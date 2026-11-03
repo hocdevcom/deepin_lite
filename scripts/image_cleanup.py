@@ -21,7 +21,7 @@ MARKERS = tuple((name, name.encode(encoding)) for name in IDENTIFIERS
 
 
 def entries(root):
-    for relative in ("etc", "usr", "opt", "DEBIAN"):
+    for relative in ("etc", "usr", "opt", "bin", "sbin", "lib", "lib64", "var", "DEBIAN"):
         start = root / relative
         if not start.is_dir() or start.is_symlink():
             continue

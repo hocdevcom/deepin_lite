@@ -7,7 +7,7 @@ on:
         required: false
         type: string
       package_run_id:
-        description: 'Optional: reuse 8 successful package jobs for ISO-only retry'
+        description: 'Optional: comma-separated run IDs providing 8 successful package jobs'
         required: false
         type: string
   push:

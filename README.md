@@ -16,12 +16,18 @@ metapackage `dde` / `deepin-desktop-environment` vì chúng kéo theo nhiều �
   tương ứng bản nhị phân đang dùng. Checksum hai source này đã đối chiếu với
   Sources.gz được xác thực qua chữ ký InRelease; provenance ghi trong lock.
   Đây **không phải** bản biên dịch toàn bộ Deepin từ nguồn.
+- Giữ dịch vụ xác thực cục bộ `deepin-authenticate` (LGPL), phụ thuộc của
+  lock/session. DEB này được tải riêng từ kho chính thức, khóa phiên bản và
+  SHA256 trong `config/required-runtime.json`, quét payload trước khi cài;
+  không bật kho commercial. Nó không phải ứng dụng cloud/AI.
 - Sửa packaging của dde-api để bỏ phụ thuộc bắt buộc vào font CJK/Unifont.
   Không giả lập gói phụ thuộc, không dùng `--force-depends`.
 - Build dependency nằm trong chroot riêng; build chạy dưới user thường với
   fakeroot và có changelog downstream riêng. Không đưa build dependency vào ISO.
 - Test khi build gói có session D-Bus riêng và màn hình Xvfb; `dbus-x11`, Xvfb,
-  xauth chỉ cài trong builder. Không dùng `nocheck` để bỏ qua test thất bại.
+  xauth chỉ cài trong builder. Giữ cách chạy test của upstream; riêng packaging
+  File Manager upstream đặt `DEB_BUILD_OPTIONS=nocheck`. CI không tuyên bố đã
+  chạy unit test của gói này; vẫn kiểm tra build, payload và boot desktop.
   Log từng gói nằm trong `source-build-<tên-gói>.log` ở artifact reports.
 - `build-session.sh` đặt primary output trên Xvfb trước khi test RandR;
   builder có `bc` phục vụ bộ test tạo theme GRUB.
@@ -105,7 +111,7 @@ dung lượng trống cho hai chroot; nếu hosted runner hết đĩa, dùng run
 ```bash
 sudo apt-get update
 sudo apt-get install -y debootstrap gnupg curl ca-certificates squashfs-tools \
-  xorriso grub-pc-bin grub-efi-amd64-bin grub-common mtools python3 qemu-system-x86
+  xorriso grub-pc-bin grub-efi-amd64-bin grub-common mtools python3 qemu-system-x86 ovmf
 sudo bash scripts/build.sh
 sudo bash scripts/smoke.sh
 ```
@@ -128,9 +134,10 @@ Xem [báo cáo rà soát build và gỡ gói](docs/build-removal-review.md) cho 
 hệ thống đã cài hoặc để chứa dữ liệu nhạy cảm trước khi kiểm tra.
 
 ISO có GRUB BIOS/UEFI; Secure Boot chưa được hỗ trợ. CI kiểm tra boot metadata,
-khởi động kernel/initrd của ISO bằng QEMU TCG và đợi NetworkManager, LightDM,
-`dde-shell` cùng `dde-desktop` hoạt động. CI chưa kiểm chứng đường boot firmware
-BIOS/UEFI thực, thao tác giao diện, mạng ra ngoài hoặc cài đặt vào đĩa.
+khởi động chính ISO qua cả BIOS và OVMF UEFI bằng QEMU TCG, đi qua GRUB và
+live initramfs, rồi đợi NetworkManager, LightDM, `dde-shell`/`dshell` cùng
+`dde-desktop` hoạt động. CI chưa kiểm tra thao tác giao diện, mạng ra ngoài
+hoặc cài đặt vào đĩa.
 Máy Windows soạn dự án này chưa có Linux runtime nên chưa build/chạy ISO tại chỗ;
 chỉ được coi là build thành công sau khi workflow thực tế xanh.
 
