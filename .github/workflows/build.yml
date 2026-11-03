@@ -26,8 +26,8 @@ jobs:
   validate:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v7
         with:
           go-version: '1.24.x'
           cache: false
@@ -59,7 +59,7 @@ jobs:
       matrix:
         project: ${{ fromJSON(inputs.projects || '["deepin-desktop-base", "dde-api", "dde-daemon", "dde-session", "dde-file-manager", "dde-control-center", "dde-session-shell", "dde-session-ui"]') }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Install source builder tools
         run: |
           sudo apt-get update
@@ -72,7 +72,7 @@ jobs:
           set -o pipefail
           sudo bash scripts/build.sh source "$PROJECT" 2>&1 | tee build.log
       - name: Upload audited source packages
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: deepin-package-${{ matrix.project }}
           path: |
@@ -82,7 +82,7 @@ jobs:
           if-no-files-found: error
       - name: Upload package logs
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: deepin-source-report-${{ matrix.project }}-${{ github.run_number }}
           path: |
@@ -97,7 +97,7 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 120
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Install build tools
         run: |
           sudo apt-get update
@@ -147,7 +147,7 @@ jobs:
           if [ -f dist/policy-audit.txt ]; then cat dist/policy-audit.txt >> "$GITHUB_STEP_SUMMARY"; fi
       - name: Upload verified ISO
         if: success()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: deepin-lite-amd64-${{ github.run_number }}
           path: |
@@ -161,7 +161,7 @@ jobs:
           if-no-files-found: error
       - name: Upload reports and logs
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: deepin-lite-reports-${{ github.run_number }}
           path: |
