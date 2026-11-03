@@ -11,7 +11,7 @@ desktop_ready() {
     uid=$(id -u live) || return 1
     runuser -u live -- env "DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/$uid/bus" \
         busctl --user --no-pager introspect com.deepin.dde.desktop \
-        /com/deepin/dde/desktop com.deepin.dde.desktop >/dev/null 2>&1
+        /org/deepin/dde/desktop/canvas org.deepin.dde.desktop.canvas >/dev/null 2>&1
 }
 check_applications() {
     local uid
@@ -27,9 +27,13 @@ check_applications() {
                 if xdotool search --onlyvisible --class deepin-terminal >/dev/null 2>&1 &&
                     xdotool search --onlyvisible --class dde-file-manager >/dev/null 2>&1; then
                     sleep 20
-                    xdotool search --onlyvisible --class deepin-terminal &&
-                        xdotool search --onlyvisible --class dde-file-manager
-                    exit $?
+                    xdotool search --onlyvisible --class deepin-terminal || exit 1
+                    xdotool search --onlyvisible --class dde-file-manager || exit 1
+                    for window in $(xdotool search --onlyvisible --class "deepin-terminal|dde-file-manager"); do
+                        xdotool windowminimize "$window"
+                    done
+                    sleep 5
+                    exit 0
                 fi
                 sleep 2
             done
@@ -51,7 +55,7 @@ for ((i=0; i<210; i++)); do
                 failed=true
                 break
             fi
-            journalctl --no-pager -b -n 200
+            journalctl --no-pager -b -o short-monotonic
             echo DEEPIN_LITE_DESKTOP_READY
             exit 0
         fi

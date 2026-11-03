@@ -44,6 +44,7 @@ dde-qt6integration
 deepin-kwin-x11
 deepin-desktop-schemas
 deepin-theme-bloom
+deepin-wallpapers
 deepin-gtk-theme
 deepin-icon-theme
 deepin-terminal

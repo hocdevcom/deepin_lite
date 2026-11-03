@@ -2,6 +2,10 @@
 # Runs INSIDE the newly built image, never on the host.
 set -Eeuo pipefail
 export DEBIAN_FRONTEND=noninteractive
+test -s /usr/share/backgrounds/default_background.jpg || {
+    echo 'The packaged default wallpaper is missing or its alternative is broken.' >&2
+    exit 1
+}
 echo 'deepin-lite' > /etc/hostname
 printf '127.0.0.1 localhost\n127.0.1.1 deepin-lite\n' > /etc/hosts
 printf 'en_US.UTF-8 UTF-8\nvi_VN.UTF-8 UTF-8\n' > /etc/locale.gen

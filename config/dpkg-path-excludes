@@ -8,6 +8,9 @@ path-exclude=/usr/share/deepin-app-store
 path-exclude=/usr/share/deepin-app-store/*
 path-exclude=/usr/share/deepin-appstore
 path-exclude=/usr/share/deepin-appstore/*
+# Keep the default wallpaper used by Appearance, omit the additional gallery.
+path-exclude=/usr/share/wallpapers/deepin/*
+path-include=/usr/share/wallpapers/deepin/desktop.jpg
 path-exclude=/usr/share/doc/*
 path-include=/usr/share/doc/*/copyright
 path-include=/usr/share/doc/*/*LICENSE*
