@@ -7,6 +7,7 @@ import re
 import sys
 import tarfile
 import urllib.request
+from source_cleanup import clean_source
 
 base = Path(__file__).resolve().parent.parent
 out = Path(sys.argv[1]).resolve()
@@ -30,6 +31,7 @@ for source in lock["sources"]:
             member.name = parts[1]
             tf.extract(member, dest, filter="data")
     archive.unlink()
+    clean_source(name, dest)
     if name == "dde-api":
         control = dest / "debian/control"
         text = control.read_text()
@@ -41,6 +43,6 @@ for source in lock["sources"]:
     # Local version ensures APT chooses this patched build over upstream.
     changelog = dest / "debian/changelog"
     text = changelog.read_text()
-    text = re.sub(r"\(([^)]+)\)", lambda m: "(" + m[1] + "+lite1)", text, count=1)
+    text = re.sub(r"\(([^)]+)\)", lambda m: "(" + m[1] + "+lite2)", text, count=1)
     changelog.write_text(text)
     print(f"Prepared {name} @ {source['commit']}")

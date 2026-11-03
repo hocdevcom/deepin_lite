@@ -17,6 +17,10 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.24.x'
+          cache: false
       - name: Validate configuration and scripts
         run: |
           python3 scripts/policy.py validate
@@ -26,11 +30,15 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y shellcheck
           shellcheck scripts/*.sh
+      - name: Verify source removal against locked upstream revisions
+        run: |
+          python3 scripts/prepare-sources.py "$RUNNER_TEMP/deepin-lite-sources"
+          find "$RUNNER_TEMP/deepin-lite-sources/dde-daemon" -name '*.go' -print0 | xargs -0 gofmt -w
   build:
     if: github.event_name != 'pull_request'
     needs: validate
     runs-on: ubuntu-24.04
-    timeout-minutes: 180
+    timeout-minutes: 300
     steps:
       - uses: actions/checkout@v4
       - name: Install build tools

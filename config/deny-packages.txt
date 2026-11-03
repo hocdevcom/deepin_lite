@@ -1,4 +1,4 @@
-# Shell globs, also used for negative APT pins and final manifest audit.
+# Shell globs: physically purge these packages, then audit the final manifest.
 dde
 deepin-desktop-environment*
 deepin-app-store*
@@ -7,6 +7,10 @@ deepin-feedback*
 deepin-log-viewer*
 deepin-user-experience*
 deepin-sync*
+deepin-deepinid*
+deepin-id*
+deepin-uadp*
+deepin-event-log*
 deepin-cloud*
 deepin-ai*
 deepin-aiassistant*

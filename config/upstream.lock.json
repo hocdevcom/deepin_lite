@@ -30,6 +30,27 @@
       "tag": "1.2.13",
       "url": "https://codeload.github.com/linuxdeepin/dde-session/tar.gz/fe5107b19c5eb6e88299181d75526c3de2c11dfd",
       "sha256": "08f1b012a0e015d2d2704c77433a471575aecc9c05d482a62e3b636c368b86bd"
+    },
+    {
+      "repository": "https://github.com/linuxdeepin/dde-daemon",
+      "commit": "f0785ca9d05defc47b3b907a90df0782eb65fe76",
+      "tag": "6.0.49",
+      "url": "https://codeload.github.com/linuxdeepin/dde-daemon/tar.gz/f0785ca9d05defc47b3b907a90df0782eb65fe76",
+      "sha256": "22be5ceb5a9101656856eb7743b8091ea30a5d0683ba2b1b82aedceefb0a6ce5"
+    },
+    {
+      "repository": "https://github.com/linuxdeepin/dde-file-manager",
+      "commit": "730d14b25ad9a46a0b94664835288d3964b6faa6",
+      "tag": "6.5.10.6",
+      "url": "https://codeload.github.com/linuxdeepin/dde-file-manager/tar.gz/730d14b25ad9a46a0b94664835288d3964b6faa6",
+      "sha256": "002985988190390bfc5d2d4ca05a47f5ea93dfc951b9a128702ee20952569693"
+    },
+    {
+      "repository": "https://github.com/linuxdeepin/dde-control-center",
+      "commit": "e1510629ac4794508ce5e4a6a319c561cb9ed521",
+      "tag": "6.0.78.1",
+      "url": "https://codeload.github.com/linuxdeepin/dde-control-center/tar.gz/e1510629ac4794508ce5e4a6a319c561cb9ed521",
+      "sha256": "656d2d812b8d298dc64fe8793d0987382b24bc503253b3f6ce88f9b768a3c189"
     }
   ]
 }

@@ -27,46 +27,8 @@ passwd -l root
 systemctl enable NetworkManager.service lightdm.service
 systemctl set-default graphical.target
 
-# Keep local Linux accounts. Deny cloud/AI D-Bus activation (including
-# functionality embedded in DDE) without breaking the local account daemon.
-mkdir -p /etc/dbus-1/session.d /etc/dbus-1/system.d
-for bus in session system; do
-    cat > "/etc/dbus-1/$bus.d/99-deepin-lite-privacy.conf" <<'EOF'
-<!DOCTYPE busconfig PUBLIC "-//freedesktop//DTD D-BUS Bus Configuration 1.0//EN"
- "http://www.freedesktop.org/standards/dbus/1.0/busconfig.dtd">
-<busconfig>
-  <policy context="mandatory">
-    <deny own_prefix="com.deepin.sync"/>
-    <deny send_destination_prefix="com.deepin.sync"/>
-    <deny own_prefix="org.deepin.dde.Sync"/>
-    <deny send_destination_prefix="org.deepin.dde.Sync"/>
-    <deny own_prefix="com.deepin.unionid"/>
-    <deny send_destination_prefix="com.deepin.unionid"/>
-    <deny own_prefix="org.deepin.dde.UnionID"/>
-    <deny send_destination_prefix="org.deepin.dde.UnionID"/>
-    <deny own_prefix="com.deepin.aiassistant"/>
-    <deny send_destination_prefix="com.deepin.aiassistant"/>
-    <deny own_prefix="org.deepin.ai"/>
-    <deny send_destination_prefix="org.deepin.ai"/>
-    <deny own_prefix="com.uniontech.ai"/>
-    <deny send_destination_prefix="com.uniontech.ai"/>
-  </policy>
-</busconfig>
-EOF
-done
-
-# Mask any matching unit that happens to be shipped inside a core package.
-while IFS= read -r -d '' unit; do
-    name=$(basename "$unit")
-    case "${name,,}" in
-        *aiassistant*|*uos-ai*|*deepin-sync*|*deepin-cloud*|*unionid*|*user-experience*|*telemetry*|*feedback*)
-            if [[ $unit == */systemd/user/* ]]; then target=/etc/systemd/user; else target=/etc/systemd/system; fi
-            mkdir -p "$target"
-            ln -sf /dev/null "$target/$name"
-            ;;
-    esac
-done < <(find /usr/lib/systemd /lib/systemd -type f \( -name '*.service' -o -name '*.timer' -o -name '*.socket' \) -print0 2>/dev/null)
-
+# Online integrations are removed from rebuilt sources and the image payload.
+# No D-Bus deny configuration or systemd masking is used as a substitute.
 mkdir -p /etc/apt/apt.conf.d
 cat > /etc/apt/apt.conf.d/99deepin-lite <<'EOF'
 APT::Install-Recommends "false";

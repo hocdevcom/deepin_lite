@@ -8,7 +8,8 @@ metapackage `dde` / `deepin-desktop-environment` vì chúng kéo theo nhiều �
 
 - Nền hệ thống: gói nhị phân có chữ ký từ kho chính thức Deepin `beige`, chỉ
   `main` và `community`; không thêm kho `commercial`, App Store hay Linglong.
-- Biên dịch **dde-api 6.0.13** và **dde-session 1.2.13** từ
+- Biên dịch **dde-api**, **dde-session**, **dde-daemon**, **dde-file-manager** và
+  **dde-control-center** từ
   [linuxdeepin](https://github.com/linuxdeepin), khóa commit và SHA256 trong
   `config/upstream.lock.json`. Đây **không phải** bản biên dịch toàn bộ Deepin từ nguồn.
 - Sửa packaging của dde-api để bỏ phụ thuộc bắt buộc vào font CJK/Unifont.
@@ -19,19 +20,34 @@ metapackage `dde` / `deepin-desktop-environment` vì chúng kéo theo nhiều �
 
 ## Loại bỏ và giảm dung lượng
 
-`config/deny-packages.txt` chặn AI/UOS AI, cloud sync, UnionID, App Store,
-Linglong, WeChat/QQ, Baidu, WPS, Sogou, ứng dụng thương mại `com.*`/`cn.*`,
-ứng dụng phụ Deepin, font Trung Quốc và gói debug/development.
-“Bỏ app China” được hiểu là bỏ ứng dụng và dịch vụ tùy chọn nói trên; giữ lõi DDE
-do Deepin phát triển để vẫn có giao diện Deepin. Không thể vừa xóa mọi mã nguồn
-có xuất xứ Trung Quốc vừa giữ DDE.
+`config/deny-packages.txt` là danh sách **gỡ bằng apt purge**, bao gồm AI/UOS AI,
+cloud sync, Deepin ID/UnionID, App Store, Linglong, WeChat/QQ, Baidu, WPS, Sogou,
+ứng dụng thương mại `com.*`/`cn.*`, ứng dụng phụ và font Trung Quốc.
+Sau khi cài các gói tối thiểu, build purge cả gói và conffile trong danh sách,
+autoremove phụ thuộc thừa rồi xác nhận desktop bắt buộc vẫn được cài.
+Không dùng negative APT pins, D-Bus deny hay systemd mask để giả thay việc xóa.
 
-APT dùng negative pins trước khi cài, tắt Recommends/Suggests. Build **thất bại**
-nếu phụ thuộc bắt buộc xung đột chính sách hoặc manifest còn gói bị cấm.
-D-Bus chặn một số tên cloud/AI đã biết; các systemd unit có tên tương ứng bị mask.
-Đây là chính sách theo danh sách đã biết, chưa phải kiểm toán toàn bộ mã nguồn,
-plugin nhúng hoặc lưu lượng mạng. Cần xem báo cáo và kiểm tra mạng trong VM trước
-khi kết luận hệ thống không còn mọi kết nối dịch vụ Deepin.
+Các tích hợp nhúng được xóa tại nguồn trong `scripts/source_cleanup.py`:
+
+- **dde-daemon:** xóa bảy adapter cloud sync, thư viện dsync, API xuất/nhập
+  cấu hình mạng cho cloud, đổi mật khẩu qua UnionID, module UADP/EventLog
+  và các action bàn phím gọi iFlytek AI.
+- **Control Center:** xóa UI cũ chứa UnionID/reset mật khẩu trực tuyến;
+  xóa plugin Accounts/cloud sync, Deepin ID, Common Info, System Info và Update.
+  Quản lý user Linux cục bộ vẫn còn qua CLI; các trang GUI nói trên không còn.
+- **File Manager:** xóa mã gọi cloud helper để hỏi vendor developer mode.
+  Chế độ vendor này không được cung cấp; quản lý tệp cục bộ vẫn được giữ.
+
+`scripts/image_cleanup.py` xóa file/thư mục payload mang tên tích hợp đã biết,
+rồi quét cả binary và cấu hình cho các định danh D-Bus AI/cloud/ID/UADP/EventLog,
+kể cả chuỗi UTF-16. Nếu còn dấu vết thực thi đã biết, build thất bại thay vì
+che bằng quy tắc chặn. Báo cáo nằm trong `removal-audit.txt` và
+`purged-packages.txt`. Giấy phép/copyright được giữ nguyên.
+
+“Bỏ app China” ở đây là bỏ các ứng dụng/dịch vụ tùy chọn trên và tích hợp đã xác
+định; giữ lõi giao diện DDE. Kiểm tra dựa trên định danh đã biết không chứng minh
+đã tìm ra mọi mã nhúng hoặc mọi lưu lượng mạng. Chưa được phép coi image là đã
+kiểm toán toàn diện trước khi build thành công và kiểm thử thực tế.
 
 Giữ locale Anh/Việt, một theme Bloom, không browser/office/games/printer/AI models.
 Xóa cache, tài liệu phụ, bản dịch dư; giữ copyright/license và nén SquashFS XZ 1 MiB.
@@ -44,7 +60,7 @@ Không cam kết số GB hoặc “nhỏ nhất tuyệt đối” trước khi b
 1. Đưa toàn bộ repository này lên GitHub, nhánh `main`.
 2. Mở **Actions → Deepin Lite ISO → Run workflow**. Push vào main cũng tự build.
 3. Khi source build, audit và kiểm tra live desktop đều thành công, tải artifact
-   `deepin-lite-amd64-<run>`: ISO, SHA256SUMS, hai gói DEB đã biên dịch và
+   `deepin-lite-amd64-<run>`: ISO, SHA256SUMS, các gói DEB đã biên dịch và
    source package tương ứng trong `sources/`.
 4. Artifact reports có `packages.tsv`, `applications.txt`, `services.txt`,
    `size-report.txt`, nguồn đã khóa, InRelease và log QEMU/build.
@@ -69,7 +85,7 @@ Chỉ chạy build trong VM/runner chuyên dụng vì cần root và chroot moun
 APT kiểm tra chữ ký với keyring upstream được khóa checksum, không dùng
 `trusted=yes`, `--allow-unauthenticated` hoặc `--no-check-gpg`.
 Nguồn GitHub đã khóa nhưng kho APT vẫn biến đổi: manifest/InRelease được lưu để
-truy vết, chưa bảo đảm tái lập bit-for-bit. Hai gói tự build được pin `+lite1`;
+truy vết, chưa bảo đảm tái lập bit-for-bit. Các gói tự build được pin `+lite2`;
 muốn cập nhật chúng cần cập nhật source lock và build lại.
 
 ## Trạng thái và giới hạn kiểm thử
@@ -87,7 +103,7 @@ chỉ được coi là build thành công sau khi workflow thực tế xanh.
 
 Các thành phần Deepin giữ giấy phép upstream. Khi phân phối image công khai,
 cần đáp ứng nghĩa vụ cung cấp corresponding source của các thành phần liên quan;
-hai gói nguồn tự sửa được lưu trong artifact và có thể tái tạo bằng source lock
+các gói nguồn tự sửa được lưu trong artifact và có thể tái tạo bằng source lock
 và prepare-sources.py.
 
 Nguồn tham khảo: [Deepin GitHub](https://github.com/linuxdeepin),

@@ -19,10 +19,10 @@ mkdir -p "$WORK" "$DIST" "$ISO/live" "$ISO/boot/grub"
 cleanup() {
     local dir
     for dir in "$BUILDER" "$ROOT"; do
-        mountpoint -q "$dir/run" && umount -R "$dir/run" || true
-        mountpoint -q "$dir/sys" && umount -R "$dir/sys" || true
-        mountpoint -q "$dir/proc" && umount "$dir/proc" || true
-        mountpoint -q "$dir/dev" && umount -R "$dir/dev" || true
+        if mountpoint -q "$dir/run"; then umount -R "$dir/run" || true; fi
+        if mountpoint -q "$dir/sys"; then umount -R "$dir/sys" || true; fi
+        if mountpoint -q "$dir/proc"; then umount "$dir/proc" || true; fi
+        if mountpoint -q "$dir/dev"; then umount -R "$dir/dev" || true; fi
     done
 }
 trap cleanup EXIT
@@ -78,31 +78,44 @@ mount_chroot "$BUILDER"
 python3 scripts/prepare-sources.py "$BUILDER/build"
 chroot "$BUILDER" apt-get update
 chroot "$BUILDER" apt-get install -y --no-install-recommends build-essential devscripts equivs ca-certificates
-for project in dde-api dde-session; do
+for project in dde-api dde-daemon dde-session dde-file-manager dde-control-center; do
     # shellcheck disable=SC2016 # Expanded by the shell inside the builder.
     chroot "$BUILDER" /bin/bash -euc '
         mkdir -p "/build/deps-$1"
         cd "/build/deps-$1"
         mk-build-deps --install --remove --tool "apt-get -y --no-install-recommends" "/build/$1/debian/control"
         cd "/build/$1"
+        if [ "$1" = dde-daemon ]; then
+            find . -name "*.go" -print0 | xargs -0 gofmt -w
+        fi
         dpkg-buildpackage --build=full --no-sign -j2
     ' -- "$project"
 done
 mkdir "$ROOT/local-debs"
-cp "$BUILDER"/build/dde-api_*_amd64.deb "$BUILDER"/build/dde-session_*_amd64.deb "$ROOT/local-debs/"
+python3 - "$BUILDER/build" "$ROOT/local-debs" <<'PY'
+import pathlib,shutil,subprocess,sys
+sys.path.insert(0,'scripts')
+from policy import forbidden,lines
+patterns=lines('config/deny-packages.txt')
+for deb in pathlib.Path(sys.argv[1]).glob('*.deb'):
+    package=subprocess.check_output(['dpkg-deb','-f',str(deb),'Package'],text=True).strip()
+    if not forbidden(package,patterns):
+        shutil.copy2(deb,sys.argv[2])
+PY
 mkdir -p "$DIST/source-debs"
 cp "$ROOT"/local-debs/*.deb "$DIST/source-debs/"
 mkdir -p "$DIST/sources"
 find "$BUILDER/build" -maxdepth 1 -type f \( -name '*.dsc' -o -name '*.tar.*' -o -name '*.diff.gz' \) \
     -exec cp -t "$DIST/sources" -- {} +
-# The patched dde-api must stay selected after apt upgrade.
+# Preserve rebuilt packages after upgrade so deleted integrations stay absent.
 mkdir -p "$ROOT/etc/apt/preferences.d"
-python3 scripts/policy.py pins > "$ROOT/etc/apt/preferences.d/99deepin-lite-deny"
-cat > "$ROOT/etc/apt/preferences.d/98deepin-lite-source" <<'EOF'
-Package: dde-api dde-session
-Pin: version *+lite1
-Pin-Priority: 1001
-EOF
+python3 - "$ROOT/local-debs" > "$ROOT/etc/apt/preferences.d/98deepin-lite-source" <<'PY'
+import pathlib,subprocess,sys
+names=[subprocess.check_output(['dpkg-deb','-f',str(p),'Package'],text=True).strip()
+       for p in sorted(pathlib.Path(sys.argv[1]).glob('*.deb'))]
+if not names: raise SystemExit('No rebuilt runtime packages found')
+print('Package: '+' '.join(names)+'\nPin: version *+lite2\nPin-Priority: 1001\n')
+PY
 mount_chroot "$ROOT"
 chroot "$ROOT" apt-get update
 mapfile -t packages < <(sed -e 's/#.*//' -e '/^[[:space:]]*$/d' config/packages.txt)
@@ -110,6 +123,16 @@ mapfile -t packages < <(sed -e 's/#.*//' -e '/^[[:space:]]*$/d' config/packages.
 local_debs=()
 for deb in "$ROOT"/local-debs/*.deb; do local_debs+=("/local-debs/${deb##*/}"); done
 chroot "$ROOT" apt-get install -y --no-install-recommends "${local_debs[@]}" "${packages[@]}"
+# Purge actual packages and conffiles; no negative pins or activation blocks.
+# If a mandatory dependency removes the desktop, the required-package audit fails.
+# shellcheck disable=SC2016
+chroot "$ROOT" dpkg-query -W '-f=${binary:Package}\n' > "$WORK/before-purge.txt"
+python3 scripts/policy.py purge-list --manifest "$WORK/before-purge.txt" > "$WORK/purge.txt"
+mapfile -t purge < <(sed '/^$/d' "$WORK/purge.txt")
+if ((${#purge[@]})); then
+    chroot "$ROOT" apt-get purge -y --auto-remove "${purge[@]}"
+fi
+cp "$WORK/purge.txt" "$DIST/purged-packages.txt"
 chroot "$ROOT" apt-get check
 install -m755 scripts/configure-root.sh "$ROOT/tmp/configure-root.sh"
 install -Dm755 scripts/live-smoke.sh "$ROOT/usr/local/lib/deepin-lite/live-smoke.sh"
@@ -118,10 +141,10 @@ mkdir -p "$ROOT/etc/systemd/system/multi-user.target.wants"
 ln -s ../deepin-lite-smoke.service "$ROOT/etc/systemd/system/multi-user.target.wants/"
 chroot "$ROOT" /bin/bash /tmp/configure-root.sh
 # shellcheck disable=SC2016 # dpkg-query owns these format placeholders.
-chroot "$ROOT" dpkg-query -W '-f=${binary:Package}\t${Version}\t${Installed-Size}\n' > "$DIST/packages.tsv"
-python3 scripts/policy.py audit --manifest "$DIST/packages.tsv" | tee "$DIST/policy-audit.txt"
-# shellcheck disable=SC2016
-chroot "$ROOT" dpkg-query -W '-f=${Package} ${Version}\n' > "$ISO/live/filesystem.packages"
+chroot "$ROOT" dpkg-query -W '-f=${db:Status-Status}\t${binary:Package}\t${Version}\t${Installed-Size}\n' \
+    | awk -F '\t' '$1 == "installed" {print $2 "\t" $3 "\t" $4}' > "$DIST/packages.tsv"
+python3 scripts/policy.py audit --manifest "$DIST/packages.tsv" --require config/packages.txt | tee "$DIST/policy-audit.txt"
+awk '{print $1 " " $2}' "$DIST/packages.tsv" > "$ISO/live/filesystem.packages"
 cp config/upstream.lock.json "$DIST/"
 cp config/deny-packages.txt "$DIST/"
 du -x -h --max-depth=2 "$ROOT/usr" | sort -h > "$DIST/size-report.txt"
@@ -135,6 +158,7 @@ cp "$kernel" "$ISO/live/vmlinuz"
 cp "$ROOT/boot/initrd.img-$version" "$ISO/live/initrd.img"
 cp config/grub.cfg "$ISO/boot/grub/grub.cfg"
 rm -rf "$ROOT/local-debs"
+python3 scripts/image_cleanup.py "$ROOT" --report "$DIST/removal-audit.txt"
 rm -f "$ROOT/usr/sbin/policy-rc.d" "$ROOT/etc/resolv.conf"
 ln -s /run/NetworkManager/resolv.conf "$ROOT/etc/resolv.conf"
 cleanup
@@ -144,6 +168,6 @@ mksquashfs "$ROOT" "$ISO/live/filesystem.squashfs" -noappend -comp xz \
 grub-mkrescue -o "$DIST/deepin-lite-amd64.iso" "$ISO" -- -volid DEEPIN_LITE
 (
     cd "$DIST"
-    sha256sum deepin-lite-amd64.iso source-debs/*.deb > SHA256SUMS
+    sha256sum deepin-lite-amd64.iso source-debs/*.deb sources/* > SHA256SUMS
 )
 echo "ISO built: $DIST/deepin-lite-amd64.iso"
