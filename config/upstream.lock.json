@@ -134,6 +134,30 @@
         "sha256": "9fb54648a1d189586dec5557f60cc69a022ca9ed3b0d5e4be98cc2cde089e34f",
         "inrelease_sha256": "e8b362eca8946dd23427ab65e6e7bfb5066b8e0c348948178b55c8dcf053d5cf"
       }
+    },
+    {
+      "repository": "https://github.com/linuxdeepin/dde-api-proxy",
+      "source_kind": "official-debian-native",
+      "version": "1.0.19.1",
+      "url": "https://community-packages.deepin.com/beige/pool/main/d/dde-api-proxy/dde-api-proxy_1.0.19.1.tar.xz",
+      "sha256": "41f45cd971abc30e55c543807b9cebad135d767ca4dc84997a9759d891e2c276",
+      "authenticated_source_index": {
+        "url": "https://community-packages.deepin.com/beige/dists/beige/main/source/Sources.gz",
+        "sha256": "9fb54648a1d189586dec5557f60cc69a022ca9ed3b0d5e4be98cc2cde089e34f",
+        "inrelease_sha256": "e8b362eca8946dd23427ab65e6e7bfb5066b8e0c348948178b55c8dcf053d5cf"
+      }
+    },
+    {
+      "repository": "https://github.com/linuxdeepin/dde-tray-loader",
+      "source_kind": "official-debian-native",
+      "version": "1.0.10",
+      "url": "https://community-packages.deepin.com/beige/pool/main/d/dde-tray-loader/dde-tray-loader_1.0.10.tar.xz",
+      "sha256": "2925b7308ba8b731e415e9afa2fddf503f70fc113c80c2d8919feb4db4c5009d",
+      "authenticated_source_index": {
+        "url": "https://community-packages.deepin.com/beige/dists/beige/main/source/Sources.gz",
+        "sha256": "9fb54648a1d189586dec5557f60cc69a022ca9ed3b0d5e4be98cc2cde089e34f",
+        "inrelease_sha256": "e8b362eca8946dd23427ab65e6e7bfb5066b8e0c348948178b55c8dcf053d5cf"
+      }
     }
   ],
   "local_revision": "lite3"

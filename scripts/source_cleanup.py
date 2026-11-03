@@ -328,12 +328,54 @@ def clean_dtk_widget(root):
             raise RuntimeError("AI implementation remains: " + str(path))
 
 
+def clean_api_proxy(root):
+    replace(root / "debian/control", " lastore-daemon (>= 6.0.2),\n", "")
+    path = root / "src/dbus-proxy/v1/CMakeLists.txt"
+    text, count = re.subn(r'(?m)^qt5_add_dbus_proxy_interface_fix\([^\n]*Lastore[^\n]*\n', '', path.read_text())
+    if count != 3:
+        raise RuntimeError("Expected three Lastore proxy generators")
+    write(path, text)
+    path = root / "src/dbus-proxy/v1/system/systemdbusproxymanager.hpp"
+    text = path.read_text().replace('#include "org_deepin_dde_Lastore1_Manager.hpp"\n', '')
+    text, count = re.subn(r'(?ms)^        m_dbusProxyFactory.push_back\(\[this\]\{\n            return new SystemLastore1ManagerProxy.*?^        }\);\n', '', text)
+    if count != 1:
+        raise RuntimeError("Expected Lastore proxy registration")
+    write(path, text)
+    for directory in ("src", "file", "misc", "toolGenerate"):
+        for path in (root / directory).rglob("*"):
+            if path.is_file() and "lastore" in path.name.lower():
+                path.unlink()
+
+
+def clean_tray_loader(root):
+    replace(root / "debian/control", " lastore-daemon (>=5.2.9),\n", "")
+    path = root / "plugins/dde-dock/shutdown/shutdownplugin.cpp"
+    text = path.read_text()
+    text, count = re.subn(r'(?m)^    , m_lastoreDConfig\([^\n]*\n', '', text)
+    if count != 1:
+        raise RuntimeError("Expected tray store configuration initialization")
+    start = text.index('    // ', text.index('    items.reserve(6);'))
+    end = text.index('    QMap<QString, QVariant> shutdown;', start)
+    if 'm_lastoreDConfig' not in text[start:end]:
+        raise RuntimeError("Expected store upgrade-state handling")
+    text = text[:start] + text[end:]
+    for action in ("SHUTDOWN", "REBOOT"):
+        text, count = re.subn(r'(?ms)^    if \(show\w+ && contextMenu.contains\(MENU_UPDATE_' + action + r'\)\) \{.*?^    }\n', '', text)
+        if count != 1:
+            raise RuntimeError("Expected update power-menu action: " + action)
+    text = re.sub(r'(?m)^const QString MENU_UPDATE_[^\n]*\n', '', text)
+    text = re.sub(r'(?m)^// lastore-daemon[^\n]*\n|^const int (?:CAN_UPGRADE|DISABLE_UPDATE|FORCE_UPDATE)[^\n]*\n', '', text)
+    write(path, text)
+    replace(root / "plugins/dde-dock/shutdown/shutdownplugin.h", '    DConfig *m_lastoreDConfig;\n', '')
+
+
 def clean_source(name, root):
     handlers = {"deepin-desktop-base": clean_desktop_base, "dde-api": clean_api,
                 "dde-daemon": clean_daemon, "dde-control-center": clean_control_center,
                 "dde-file-manager": clean_file_manager,
                 "dde-session-shell": clean_session_shell, "dde-session-ui": clean_session_ui,
                 "dde-appearance": clean_appearance, "dde-qt-dbus-factory": clean_dbus_factory,
-                "dtkwidget": clean_dtk_widget, "dtk6widget": clean_dtk_widget}
+                "dtkwidget": clean_dtk_widget, "dtk6widget": clean_dtk_widget,
+                "dde-api-proxy": clean_api_proxy, "dde-tray-loader": clean_tray_loader}
     if name in handlers:
         handlers[name](Path(root))
