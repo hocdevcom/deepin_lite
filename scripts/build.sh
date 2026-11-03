@@ -130,17 +130,7 @@ for project in "${projects[@]}"; do
             dpkg-buildpackage -rfakeroot --build=full --no-sign -j2
     ' -- "$project" 2>&1 | tee "$DIST/source-build-$project.log"
 done
-mkdir "$ROOT/local-debs"
-python3 - "$BUILDER/build" "$ROOT/local-debs" <<'PY'
-import pathlib,shutil,subprocess,sys
-sys.path.insert(0,'scripts')
-from policy import forbidden,lines
-patterns=lines('config/deny-packages.txt')
-for deb in pathlib.Path(sys.argv[1]).glob('*.deb'):
-    package=subprocess.check_output(['dpkg-deb','-f',str(deb),'Package'],text=True).strip()
-    if not forbidden(package,patterns):
-        shutil.copy2(deb,sys.argv[2])
-PY
+python3 scripts/select-runtime-debs.py "$BUILDER/build" "$ROOT/local-debs"
 mkdir -p "$DIST/source-debs"
 cp "$ROOT"/local-debs/*.deb "$DIST/source-debs/"
 mkdir -p "$DIST/sources"
@@ -148,8 +138,8 @@ find "$BUILDER/build" -maxdepth 1 -type f \( -name '*.dsc' -o -name '*.tar.*' -o
     -exec cp -t "$DIST/sources" -- {} +
 else
     mkdir -p "$ROOT/local-debs" "$DIST/source-debs" "$DIST/sources"
-    cp incoming/source-debs/*.deb "$ROOT/local-debs/"
-    cp incoming/source-debs/*.deb "$DIST/source-debs/"
+    python3 scripts/select-runtime-debs.py incoming/source-debs "$ROOT/local-debs"
+    cp "$ROOT"/local-debs/*.deb "$DIST/source-debs/"
     cp incoming/sources/* "$DIST/sources/"
 fi
 if [[ $MODE == source ]]; then
