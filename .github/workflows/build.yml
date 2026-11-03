@@ -92,7 +92,7 @@ jobs:
             dist/upstream.InRelease
           retention-days: 14
   build:
-    if: always() && github.event_name != 'pull_request' && inputs.projects == '' && needs.validate.result == 'success' && (needs.packages.result == 'success' || inputs.package_run_id != '')
+    if: always() && !cancelled() && github.event_name != 'pull_request' && inputs.projects == '' && needs.validate.result == 'success' && (needs.packages.result == 'success' || inputs.package_run_id != '')
     needs: [validate, packages]
     runs-on: ubuntu-24.04
     timeout-minutes: 120
