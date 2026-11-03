@@ -18,7 +18,7 @@ lock = json.loads((base / "config/upstream.lock.json").read_text())
 for source in lock["sources"]:
     name = (source.get("name") or source["repository"].rsplit("/", 1)[-1])
     archive = out / (name + ".tar.gz")
-    with urllib.request.urlopen(source["url"], timeout=120) as response:
+    with urllib.request.urlopen(source["url"], timeout=300) as response:
         archive.write_bytes(response.read())
     if hashlib.sha256(archive.read_bytes()).hexdigest() != source["sha256"]:
         raise SystemExit(f"Source checksum mismatch: {name}")

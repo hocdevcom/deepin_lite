@@ -380,6 +380,14 @@ def clean_session(root):
     replace(path, '[Service]\n', 'Wants=dde-appearance.service\nAfter=dde-appearance.service\n\n[Service]\n')
 
 
+def clean_theme(root):
+    icons = list(root.rglob("UosAiAssistant.dci"))
+    if len(icons) != 4:
+        raise RuntimeError("Expected four AI theme icon payloads")
+    for path in icons:
+        path.unlink()
+
+
 def clean_source(name, root):
     handlers = {"deepin-desktop-base": clean_desktop_base, "dde-api": clean_api,
                 "dde-daemon": clean_daemon, "dde-session": clean_session, "dde-control-center": clean_control_center,
@@ -387,6 +395,7 @@ def clean_source(name, root):
                 "dde-session-shell": clean_session_shell, "dde-session-ui": clean_session_ui,
                 "dde-appearance": clean_appearance, "dde-qt-dbus-factory": clean_dbus_factory,
                 "dtkwidget": clean_dtk_widget, "dtk6widget": clean_dtk_widget,
-                "dde-api-proxy": clean_api_proxy, "dde-tray-loader": clean_tray_loader}
+                "dde-api-proxy": clean_api_proxy, "dde-tray-loader": clean_tray_loader,
+                "deepin-desktop-theme": clean_theme}
     if name in handlers:
         handlers[name](Path(root))

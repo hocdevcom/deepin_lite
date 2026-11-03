@@ -42,6 +42,14 @@ dde-introduction*
 dde-grand-search*
 # This live image uses X11; the Wayland greeter is a separate optional package.
 deepin-greeter-wayland
+deepin-desktop-theme
+deepin-theme-bloom-dark
+deepin-theme-vintage
+deepin-theme-flow
+deepin-theme-square
+deepin-theme-hazy-color
+deepin-theme-organic-glass
+deepin-theme-macaron
 dtkwidget*-examples
 dtk6widget-examples
 uos-ai*

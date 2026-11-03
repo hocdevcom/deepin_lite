@@ -158,6 +158,18 @@
         "sha256": "9fb54648a1d189586dec5557f60cc69a022ca9ed3b0d5e4be98cc2cde089e34f",
         "inrelease_sha256": "e8b362eca8946dd23427ab65e6e7bfb5066b8e0c348948178b55c8dcf053d5cf"
       }
+    },
+    {
+      "repository": "https://github.com/linuxdeepin/deepin-desktop-theme",
+      "source_kind": "official-debian-native",
+      "version": "1.0.27",
+      "url": "https://community-packages.deepin.com/beige/pool/main/d/deepin-desktop-theme/deepin-desktop-theme_1.0.27.tar.xz",
+      "sha256": "cf3a735b4480eb3b4cf9cd90c8821f834aa51c48917606afc1ecaea2df92fcb0",
+      "authenticated_source_index": {
+        "url": "https://community-packages.deepin.com/beige/dists/beige/main/source/Sources.gz",
+        "sha256": "9fb54648a1d189586dec5557f60cc69a022ca9ed3b0d5e4be98cc2cde089e34f",
+        "inrelease_sha256": "e8b362eca8946dd23427ab65e6e7bfb5066b8e0c348948178b55c8dcf053d5cf"
+      }
     }
   ],
   "local_revision": "lite3"
