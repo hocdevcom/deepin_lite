@@ -180,6 +180,7 @@ fi
 cp "$WORK/purge.txt" "$DIST/purged-packages.txt"
 chroot "$ROOT" apt-get check
 chroot "$ROOT" dpkg --audit
+python3 scripts/check-runtime-links.py "$ROOT" "$DIST/runtime-link-audit.txt"
 install -m755 scripts/configure-root.sh "$ROOT/tmp/configure-root.sh"
 install -Dm755 scripts/live-smoke.sh "$ROOT/usr/local/lib/deepin-lite/live-smoke.sh"
 install -Dm644 config/deepin-lite-smoke.service "$ROOT/etc/systemd/system/deepin-lite-smoke.service"
