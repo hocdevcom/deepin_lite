@@ -84,7 +84,12 @@ Không cam kết số GB hoặc “nhỏ nhất tuyệt đối” trước khi b
 4. Artifact reports có `packages.tsv`, `applications.txt`, `services.txt`,
    `size-report.txt`, nguồn đã khóa, InRelease và log QEMU/build.
 
-PR kiểm tra cấu hình/scripts và áp dụng các sửa đổi lên nguồn đã khóa. Workflow không cần PAT hay secrets.
+PR kiểm tra cấu hình/scripts và áp dụng các sửa đổi lên nguồn đã khóa.
+Build gói chạy theo matrix 6 job độc lập, `fail-fast: false`: một gói lỗi không
+che lỗi của những gói phía sau. Job ISO chỉ bắt đầu khi cả 6 gói build/audit đạt.
+Lệnh Linux tương ứng: `sudo bash scripts/build.sh source <tên-gói>` hoặc
+`sudo bash scripts/build.sh image` (với artifact đã tải vào `incoming/`).
+Workflow không cần PAT hay secrets.
 Quyền mặc định `contents: read`; không tự phát hành GitHub Release.
 Artifact ISO giữ 7 ngày, logs 14 ngày. Lần đầu có thể mất 1–3 giờ và cần đủ
 dung lượng trống cho hai chroot; nếu hosted runner hết đĩa, dùng runner lớn hơn.

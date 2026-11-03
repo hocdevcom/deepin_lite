@@ -127,6 +127,9 @@ def clean_control_center(root):
 
 
 def clean_file_manager(root):
+    # Upstream forces -j8 even when dpkg-buildpackage requests -j2. Keep the
+    # memory limit predictable on standard hosted runners for Qt/C++ builds.
+    replace(root / "debian/rules", "\tdh_auto_build -- -j8", "\tdh_auto_build -- -j2")
     path = root / "src/dfm-base/utils/sysinfoutils.cpp"
     text = path.read_text()
     start = text.index("bool SysInfoUtils::isDeveloperModeEnabled()")
