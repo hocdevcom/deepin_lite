@@ -148,8 +148,16 @@ def clean_desktop_base(root):
     remove(root, "files/appstore_loongson.json")
 
 
+def clean_api(root):
+    # Listing prepare next to the binaries does not order those prerequisites
+    # under make -j. Each Go binary must wait for its GOPATH symlink to exist.
+    replace(root / "Makefile", "out/bin/%:\n", "out/bin/%: | prepare\n")
+    replace(root / "Makefile", "prepare:\n", ".PHONY: prepare\nprepare:\n")
+
+
 def clean_source(name, root):
-    handlers = {"deepin-desktop-base": clean_desktop_base, "dde-daemon": clean_daemon, "dde-control-center": clean_control_center,
+    handlers = {"deepin-desktop-base": clean_desktop_base, "dde-api": clean_api,
+                "dde-daemon": clean_daemon, "dde-control-center": clean_control_center,
                 "dde-file-manager": clean_file_manager}
     if name in handlers:
         handlers[name](Path(root))

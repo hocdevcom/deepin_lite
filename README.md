@@ -23,6 +23,8 @@ metapackage `dde` / `deepin-desktop-environment` vì chúng kéo theo nhiều �
   builder có `bc` phục vụ bộ test tạo theme GRUB.
 - Với dde-daemon, giữ GOPATH build dependency tại `/usr/share/gocode` và chọn
   buildsystem makefile rõ ràng; không lấy GOPATH tạm của dh-golang bằng `go env`.
+- Makefile dde-api bổ sung phụ thuộc `prepare` cho từng binary để `make -j2`
+  không chạy compiler trước khi tạo xong symlink source trong GOPATH.
 - Builder cài `deepin-desktop-base` để test đọc được `/etc/os-version`, cùng
   `grub-common`, `librsvg2-bin` và Unifont cho test theme. ISO cài DEB desktop-base
   đã build lại, bỏ phụ thuộc font thừa và App Store config; giữ postinst và
