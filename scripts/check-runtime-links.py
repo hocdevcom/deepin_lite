@@ -9,7 +9,10 @@ paths = ["usr/bin/" + name for name in (
     "dde-shell", "dde-appearance", "dde-session", "dde-control-center",
     "dde-lock", "lightdm-deepin-greeter", "deepin-terminal", "deepin-kwin_x11")]
 paths += ["usr/libexec/dde-file-manager",
-          "usr/lib/x86_64-linux-gnu/dde-shell/org.deepin.ds.desktop.so"]
+          "usr/lib/x86_64-linux-gnu/dde-shell/org.deepin.ds.desktop.so",
+          "usr/libexec/trayplugin-loader",
+          "usr/lib/x86_64-linux-gnu/qt5/plugins/platforms/libqwayland-generic.so",
+          "usr/lib/x86_64-linux-gnu/qt5/plugins/wayland-shell-integration/libplugin-shell.so"]
 for pattern in ("libdtkwidget.so.5.*", "libdtk6widget.so.6.*", "libdframeworkdbus.so.2.*"):
     libraries = list((root / "usr/lib/x86_64-linux-gnu").glob(pattern))
     if not libraries:

@@ -37,6 +37,8 @@ dde-session-ui
 dde-polkit-agent
 dde-control-center
 dde-qt5integration
+# Qt5 tray widgets connect to dde-shell's embedded Wayland compositor on X11.
+qtwayland5
 dde-qt6integration
 deepin-kwin-x11
 deepin-desktop-schemas
